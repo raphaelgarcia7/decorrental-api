@@ -5,11 +5,11 @@ namespace DecorRental.Application.UseCases.ReserveKit;
 
 public class ReserveKitHandler
 {
-    public void Handle(Kit kit, ReserveKitCommand command)
+    public void Handle(Kit kit, ReserveKitCommand reserveKitCommand)
     {
         var period = new DateRange(
-            command.StartDate,
-            command.EndDate);
+            reserveKitCommand.StartDate,
+            reserveKitCommand.EndDate);
 
         kit.Reserve(period);
     }
