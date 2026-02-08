@@ -7,14 +7,14 @@ namespace DecorRental.Application.UseCases.ReserveKit;
 public class ReserveKitHandler
 {
 
-    private readonly IKitRepository repository;
+    private readonly IKitRepository _repository;
 
     public ReserveKitHandler(IKitRepository repository)
     {
-        this.repository = repository;
+        _repository = repository;
     }
 
-    public void Handle(Kit kit, ReserveKitCommand reserveKitCommand)
+    public void Handle(ReserveKitCommand reserveKitCommand)
     {
         var kit = _repository.GetById(reserveKitCommand.KitId)
             ?? throw new Exception("Kit not found");

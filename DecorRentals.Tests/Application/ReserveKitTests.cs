@@ -1,6 +1,7 @@
 ﻿using DecorRental.Application.UseCases.ReserveKit;
 using DecorRental.Domain.Entities;
 using DecorRental.Domain.Exceptions;
+using DecorRental.Tests.Application.Fakes;
 using Xunit;
 
 namespace DecorRental.Tests.Application;
@@ -12,14 +13,17 @@ public class ReserveKitTests
     {
         var kit = new Kit("Basic Kit");
 
+        var repository = new FakeKitRepository();
+        repository.Add(kit);
+
         var command = new ReserveKitCommand(
             kit.Id,
             new DateOnly(2026, 1, 10),
             new DateOnly(2026, 1, 12));
 
-        var handler = new ReserveKitHandler();
+        var handler = new ReserveKitHandler(repository);
 
-        handler.Handle(kit, command);
+        handler.Handle(command);
 
         Assert.Single(kit.Reservations);
     }
@@ -29,15 +33,18 @@ public class ReserveKitTests
     {
         var kit = new Kit("Basic Kit");
 
-        var handler = new ReserveKitHandler();
+        var repository = new FakeKitRepository();
+        repository.Add(kit);
 
-        handler.Handle(kit, new ReserveKitCommand(
+        var handler = new ReserveKitHandler(repository);
+
+        handler.Handle(new ReserveKitCommand(
             kit.Id,
             new DateOnly(2026, 1, 10),
             new DateOnly(2026, 1, 12)));
 
         Assert.Throws<DomainException>(() =>
-            handler.Handle(kit, new ReserveKitCommand(
+            handler.Handle(new ReserveKitCommand(
                 kit.Id,
                 new DateOnly(2026, 1, 11),
                 new DateOnly(2026, 1, 13))));
