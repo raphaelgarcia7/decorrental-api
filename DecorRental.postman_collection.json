@@ -1,0 +1,134 @@
+{
+  "info": {
+    "name": "DecorRental API",
+    "_postman_id": "7b5b2b60-8d7a-4c2c-9a3b-5b9f5b0c2a5e",
+    "description": "Coleção para testar a API do DecorRental",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Create kit",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Basic Kit\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/kits",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "kits"
+          ]
+        }
+      }
+    },
+    {
+      "name": "List kits",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/kits",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "kits"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Get kit by id",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/kits/{{kitId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "kits",
+            "{{kitId}}"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Reserve kit",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"startDate\": \"2026-02-15\",\n  \"endDate\": \"2026-02-18\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/kits/{{kitId}}/reservations",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "kits",
+            "{{kitId}}",
+            "reservations"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Cancel reservation",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/kits/{{kitId}}/reservations/{{reservationId}}/cancel",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "kits",
+            "{{kitId}}",
+            "reservations",
+            "{{reservationId}}",
+            "cancel"
+          ]
+        }
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5123"
+    },
+    {
+      "key": "kitId",
+      "value": ""
+    },
+    {
+      "key": "reservationId",
+      "value": ""
+    }
+  ]
+}

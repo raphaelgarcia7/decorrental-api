@@ -14,13 +14,13 @@ public sealed class KitConfiguration : IEntityTypeConfiguration<Kit>
             .IsRequired()
             .HasMaxLength(200);
 
-        // Diz ao EF que a coleção real está no campo privado "_reservations"
-        builder.HasMany<Reservation>("_reservations")
+        // Usa a propriedade de navegação, mas acessa via backing field
+        builder.HasMany(kit => kit.Reservations)
             .WithOne()
             .HasForeignKey("KitId")
             .OnDelete(DeleteBehavior.Cascade);
 
-        // Garante que o EF use o campo em vez da propriedade read-only
+        // Garante que o EF use o campo privado em vez da propriedade read-only
         builder.Navigation(k => k.Reservations)
             .UsePropertyAccessMode(PropertyAccessMode.Field);
     }
