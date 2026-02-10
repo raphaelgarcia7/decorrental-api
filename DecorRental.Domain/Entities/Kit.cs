@@ -6,8 +6,6 @@ namespace DecorRental.Domain.Entities;
 
 public class Kit
 {
-    private readonly List<Reservation> _reservations = new();
-
     public Guid Id { get; private set; }
     public string Name { get; private set; }
 
@@ -30,4 +28,8 @@ public class Kit
 
         _reservations.Add(new Reservation(Id, period));
     }
+
+    private readonly List<Reservation> _reservations = new();
+
+    private Kit() { }
 }

@@ -22,5 +22,7 @@ namespace DecorRental.Domain.Entities
         {
             Status = ReservationStatus.Cancelled;
         }
+
+        private Reservation() { }
     }
 }

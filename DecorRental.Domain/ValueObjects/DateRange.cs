@@ -4,8 +4,8 @@ namespace DecorRental.Domain.ValueObjects
 {
     public sealed class DateRange
     {
-        public DateOnly Start { get; set; }
-        public DateOnly End { get; set; }
+        public DateOnly Start { get; private set; }
+        public DateOnly End { get; private set; }
 
         public DateRange(DateOnly start, DateOnly end)
         {
@@ -20,5 +20,7 @@ namespace DecorRental.Domain.ValueObjects
         {
             return Start <= other.End && End >= other.Start;
         }
+
+        private DateRange() { }
     }
 }
