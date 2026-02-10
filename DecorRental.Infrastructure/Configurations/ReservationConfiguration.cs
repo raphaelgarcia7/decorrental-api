@@ -16,18 +16,18 @@ public sealed class ReservationConfiguration : IEntityTypeConfiguration<Reservat
         // DateRange é Value Object, não vira tabela própria
         builder.OwnsOne(reservation => reservation.Period, period =>
         {
-            // SQLite não lida bem com DateOnly, então convertemos para string
+            // SQLite não lida bem com DateOnly, então convertemos para DateTime
             period.Property(p => p.Start)
                 .HasColumnName("StartDate")
                 .HasConversion(
-                    v => v.ToString("yyyy-MM-dd"),
-                    v => DateOnly.Parse(v));
+                    v => v.ToDateTime(TimeOnly.MinValue),
+                    v => DateOnly.FromDateTime(v));
 
             period.Property(p => p.End)
                 .HasColumnName("EndDate")
                 .HasConversion(
-                    v => v.ToString("yyyy-MM-dd"),
-                    v => DateOnly.Parse(v));
+                    v => v.ToDateTime(TimeOnly.MinValue),
+                    v => DateOnly.FromDateTime(v));
         });
     }
 }

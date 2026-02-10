@@ -1,6 +1,31 @@
 @decorrental_api_HostAddress = http://localhost:5123
 
-GET {{decorrental_api_HostAddress}}/weatherforecast/
+### Create kit
+POST {{decorrental_api_HostAddress}}/api/kits
+Content-Type: application/json
+
+{
+  "name": "Basic Kit"
+}
+
+### List kits
+GET {{decorrental_api_HostAddress}}/api/kits
 Accept: application/json
 
-###
+### Get kit by id
+# Substitua o {id} pelo id retornado na criação
+GET {{decorrental_api_HostAddress}}/api/kits/{id}
+Accept: application/json
+
+### Reserve kit
+POST {{decorrental_api_HostAddress}}/api/kits/{id}/reservations
+Content-Type: application/json
+
+{
+  "startDate": "2026-02-15",
+  "endDate": "2026-02-18"
+}
+
+### Cancel reservation
+# Substitua o {reservationId} pelo id retornado no detalhe do kit
+POST {{decorrental_api_HostAddress}}/api/kits/{id}/reservations/{reservationId}/cancel

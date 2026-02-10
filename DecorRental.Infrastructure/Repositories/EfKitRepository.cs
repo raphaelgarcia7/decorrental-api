@@ -19,6 +19,18 @@ public class EfKitRepository : IKitRepository
             .Include(kit => kit.Reservations)
             .FirstOrDefault(kit => kit.Id == id);
 
+    public IReadOnlyList<Kit> GetAll()
+        => _context.Kits
+            .Include(kit => kit.Reservations)
+            .AsNoTracking()
+            .ToList();
+
+    public void Add(Kit kit)
+    {
+        _context.Kits.Add(kit);
+        _context.SaveChanges();
+    }
+
     public void Save(Kit kit)
     {
         _context.Update(kit);

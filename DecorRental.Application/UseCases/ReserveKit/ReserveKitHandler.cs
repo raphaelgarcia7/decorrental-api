@@ -1,4 +1,5 @@
-﻿using DecorRental.Domain.Entities;
+using DecorRental.Application.Exceptions;
+using DecorRental.Domain.Entities;
 using DecorRental.Domain.Repositories;
 using DecorRental.Domain.ValueObjects;
 
@@ -17,7 +18,7 @@ public class ReserveKitHandler
     public void Handle(ReserveKitCommand reserveKitCommand)
     {
         var kit = _repository.GetById(reserveKitCommand.KitId)
-            ?? throw new Exception("Kit not found");
+            ?? throw new NotFoundException("Kit not found.");
 
         var period = new DateRange(
             reserveKitCommand.StartDate,

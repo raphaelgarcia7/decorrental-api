@@ -7,12 +7,15 @@ namespace DecorRental.Domain.Entities;
 public class Kit
 {
     public Guid Id { get; private set; }
-    public string Name { get; private set; }
+    public string Name { get; private set; } = null!;
 
     public IReadOnlyCollection<Reservation> Reservations => _reservations;
 
     public Kit(string name)
     {
+        if (string.IsNullOrWhiteSpace(name))
+            throw new DomainException("Kit name is required.");
+
         Id = Guid.NewGuid();
         Name = name;
     }
@@ -24,7 +27,7 @@ public class Kit
             r.Period.Overlaps(period));
 
         if (hasConflict)
-            throw new DomainException("Kit is already reserved for this period.");
+            throw new ConflictException("Kit is already reserved for this period.");
 
         _reservations.Add(new Reservation(Id, period));
     }

@@ -7,7 +7,7 @@ namespace DecorRental.Domain.Entities
     {
         public Guid Id { get; private set; }
         public Guid KitId { get; private set; }
-        public DateRange Period { get; private set; }
+        public DateRange Period { get; private set; } = null!;
         public ReservationStatus Status { get; private set; }
 
         public Reservation(Guid kitId, DateRange period)

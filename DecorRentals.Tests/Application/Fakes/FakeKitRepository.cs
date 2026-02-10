@@ -10,9 +10,12 @@ public class FakeKitRepository : IKitRepository
     public Kit? GetById(Guid id)
         => _storage.TryGetValue(id, out var kit) ? kit : null;
 
-    public void Save(Kit kit)
-        => _storage[kit.Id] = kit;
+    public IReadOnlyList<Kit> GetAll()
+        => _storage.Values.ToList();
 
     public void Add(Kit kit)
+        => _storage[kit.Id] = kit;
+
+    public void Save(Kit kit)
         => _storage[kit.Id] = kit;
 }

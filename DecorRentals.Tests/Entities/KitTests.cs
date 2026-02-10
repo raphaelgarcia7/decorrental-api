@@ -16,7 +16,7 @@ public class KitTests
             new DateOnly(2026, 1, 10),
             new DateOnly(2026, 1, 12)));
 
-        Assert.Throws<DomainException>(() =>
+        Assert.Throws<ConflictException>(() =>
             kit.Reserve(new DateRange(
                 new DateOnly(2026, 1, 11),
                 new DateOnly(2026, 1, 13))));

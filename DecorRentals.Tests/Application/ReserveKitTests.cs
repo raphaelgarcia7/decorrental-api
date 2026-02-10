@@ -43,7 +43,7 @@ public class ReserveKitTests
             new DateOnly(2026, 1, 10),
             new DateOnly(2026, 1, 12)));
 
-        Assert.Throws<DomainException>(() =>
+        Assert.Throws<ConflictException>(() =>
             handler.Handle(new ReserveKitCommand(
                 kit.Id,
                 new DateOnly(2026, 1, 11),
