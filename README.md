@@ -34,6 +34,12 @@ The API applies EF Core migrations automatically on startup and creates `decoren
 dotnet test
 ```
 
+The test suite includes unit tests and API integration tests.
+
+## CI
+
+GitHub Actions workflow: `.github/workflows/ci.yml`
+
 ## Endpoints (summary)
 
 - POST /api/kits
