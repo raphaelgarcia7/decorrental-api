@@ -11,9 +11,9 @@ public sealed class GetKitsHandler
         _repository = repository;
     }
 
-    public GetKitsResult Handle(GetKitsQuery query)
+    public async Task<GetKitsResult> HandleAsync(GetKitsQuery query, CancellationToken cancellationToken = default)
     {
-        var kits = _repository.GetAll();
+        var kits = await _repository.GetAllAsync(cancellationToken);
         var totalCount = kits.Count;
 
         var items = kits

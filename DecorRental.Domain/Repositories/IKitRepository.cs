@@ -4,8 +4,8 @@ namespace DecorRental.Domain.Repositories;
 
 public interface IKitRepository
 {
-    Kit? GetById(Guid id);
-    IReadOnlyList<Kit> GetAll();
-    void Add(Kit kit);
-    void Save(Kit kit);
+    Task<Kit?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<Kit>> GetAllAsync(CancellationToken cancellationToken = default);
+    Task AddAsync(Kit kit, CancellationToken cancellationToken = default);
+    Task SaveAsync(Kit kit, CancellationToken cancellationToken = default);
 }

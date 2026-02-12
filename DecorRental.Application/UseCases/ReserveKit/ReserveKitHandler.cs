@@ -15,9 +15,9 @@ public class ReserveKitHandler
         _repository = repository;
     }
 
-    public void Handle(ReserveKitCommand reserveKitCommand)
+    public async Task HandleAsync(ReserveKitCommand reserveKitCommand, CancellationToken cancellationToken = default)
     {
-        var kit = _repository.GetById(reserveKitCommand.KitId)
+        var kit = await _repository.GetByIdAsync(reserveKitCommand.KitId, cancellationToken)
             ?? throw new NotFoundException("Kit not found.");
 
         var period = new DateRange(
@@ -26,6 +26,6 @@ public class ReserveKitHandler
 
         kit.Reserve(period);
 
-        _repository.Save(kit);
+        await _repository.SaveAsync(kit, cancellationToken);
     }
 }

@@ -14,24 +14,24 @@ public class EfKitRepository : IKitRepository
         _context = context;
     }
 
-    public Kit? GetById(Guid id)
+    public Task<Kit?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
         => _context.Kits
             .Include(kit => kit.Reservations)
-            .FirstOrDefault(kit => kit.Id == id);
+            .FirstOrDefaultAsync(kit => kit.Id == id, cancellationToken);
 
-    public IReadOnlyList<Kit> GetAll()
-        => _context.Kits
+    public async Task<IReadOnlyList<Kit>> GetAllAsync(CancellationToken cancellationToken = default)
+        => await _context.Kits
             .Include(kit => kit.Reservations)
             .AsNoTracking()
-            .ToList();
+            .ToListAsync(cancellationToken);
 
-    public void Add(Kit kit)
+    public async Task AddAsync(Kit kit, CancellationToken cancellationToken = default)
     {
-        _context.Kits.Add(kit);
-        _context.SaveChanges();
+        await _context.Kits.AddAsync(kit, cancellationToken);
+        await _context.SaveChangesAsync(cancellationToken);
     }
 
-    public void Save(Kit kit)
+    public async Task SaveAsync(Kit kit, CancellationToken cancellationToken = default)
     {
         if (_context.Entry(kit).State == EntityState.Detached)
         {
@@ -41,7 +41,9 @@ public class EfKitRepository : IKitRepository
         foreach (var reservation in kit.Reservations)
         {
             var entry = _context.Entry(reservation);
-            var exists = _context.Reservations.Any(r => r.Id == reservation.Id);
+            var exists = await _context.Reservations.AnyAsync(
+                r => r.Id == reservation.Id,
+                cancellationToken);
 
             if (!exists)
             {
@@ -55,6 +57,6 @@ public class EfKitRepository : IKitRepository
             }
         }
 
-        _context.SaveChanges();
+        await _context.SaveChangesAsync(cancellationToken);
     }
 }

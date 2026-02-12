@@ -35,9 +35,9 @@ public class KitsController : ControllerBase
 
     [HttpPost]
     [ProducesResponseType(typeof(KitSummaryResponse), StatusCodes.Status201Created)]
-    public IActionResult Create([FromBody] CreateKitRequest request)
+    public async Task<IActionResult> Create([FromBody] CreateKitRequest request, CancellationToken cancellationToken)
     {
-        var kitId = _createHandler.Handle(new CreateKitCommand(request.Name));
+        var kitId = await _createHandler.HandleAsync(new CreateKitCommand(request.Name), cancellationToken);
         var response = new KitSummaryResponse(kitId, request.Name);
 
         return CreatedAtAction(nameof(GetById), new { id = kitId }, response);
@@ -45,9 +45,9 @@ public class KitsController : ControllerBase
 
     [HttpGet]
     [ProducesResponseType(typeof(PagedResponse<KitSummaryResponse>), StatusCodes.Status200OK)]
-    public IActionResult GetAll([FromQuery] GetKitsRequest request)
+    public async Task<IActionResult> GetAll([FromQuery] GetKitsRequest request, CancellationToken cancellationToken)
     {
-        var result = _getKitsHandler.Handle(new GetKitsQuery(request.Page, request.PageSize));
+        var result = await _getKitsHandler.HandleAsync(new GetKitsQuery(request.Page, request.PageSize), cancellationToken);
         var response = new PagedResponse<KitSummaryResponse>(
             result.Items.Select(ToSummary).ToList(),
             result.Page,
@@ -59,9 +59,9 @@ public class KitsController : ControllerBase
 
     [HttpGet("{id:guid}")]
     [ProducesResponseType(typeof(KitDetailResponse), StatusCodes.Status200OK)]
-    public IActionResult GetById(Guid id)
+    public async Task<IActionResult> GetById(Guid id, CancellationToken cancellationToken)
     {
-        var kit = _getKitByIdHandler.Handle(new GetKitByIdQuery(id));
+        var kit = await _getKitByIdHandler.HandleAsync(new GetKitByIdQuery(id), cancellationToken);
         var response = ToDetail(kit);
 
         return Ok(response);
@@ -69,9 +69,9 @@ public class KitsController : ControllerBase
 
     [HttpGet("{id:guid}/reservations")]
     [ProducesResponseType(typeof(IReadOnlyList<ReservationResponse>), StatusCodes.Status200OK)]
-    public IActionResult GetReservations(Guid id)
+    public async Task<IActionResult> GetReservations(Guid id, CancellationToken cancellationToken)
     {
-        var kit = _getKitByIdHandler.Handle(new GetKitByIdQuery(id));
+        var kit = await _getKitByIdHandler.HandleAsync(new GetKitByIdQuery(id), cancellationToken);
         var response = kit.Reservations
             .Select(r => new ReservationResponse(
                 r.Id,
@@ -85,23 +85,23 @@ public class KitsController : ControllerBase
 
     [HttpPost("{id:guid}/reservations")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
-    public IActionResult Reserve(Guid id, [FromBody] ReserveKitRequest request)
+    public async Task<IActionResult> Reserve(Guid id, [FromBody] ReserveKitRequest request, CancellationToken cancellationToken)
     {
         var command = new ReserveKitCommand(
             id,
             request.StartDate,
             request.EndDate);
 
-        _reserveHandler.Handle(command);
+        await _reserveHandler.HandleAsync(command, cancellationToken);
 
         return NoContent();
     }
 
     [HttpPost("{id:guid}/reservations/{reservationId:guid}/cancel")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
-    public IActionResult Cancel(Guid id, Guid reservationId)
+    public async Task<IActionResult> Cancel(Guid id, Guid reservationId, CancellationToken cancellationToken)
     {
-        _cancelHandler.Handle(new CancelReservationCommand(id, reservationId));
+        await _cancelHandler.HandleAsync(new CancelReservationCommand(id, reservationId), cancellationToken);
         return NoContent();
     }
 

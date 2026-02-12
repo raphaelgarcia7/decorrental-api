@@ -13,9 +13,9 @@ public sealed class GetKitByIdHandler
         _repository = repository;
     }
 
-    public Kit Handle(GetKitByIdQuery query)
+    public async Task<Kit> HandleAsync(GetKitByIdQuery query, CancellationToken cancellationToken = default)
     {
-        return _repository.GetById(query.KitId)
+        return await _repository.GetByIdAsync(query.KitId, cancellationToken)
             ?? throw new NotFoundException("Kit not found.");
     }
 }

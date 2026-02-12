@@ -12,15 +12,15 @@ public sealed class CancelReservationHandler
         _repository = repository;
     }
 
-    public void Handle(CancelReservationCommand command)
+    public async Task HandleAsync(CancelReservationCommand command, CancellationToken cancellationToken = default)
     {
-        var kit = _repository.GetById(command.KitId)
+        var kit = await _repository.GetByIdAsync(command.KitId, cancellationToken)
             ?? throw new NotFoundException("Kit not found.");
 
         var reservation = kit.Reservations.FirstOrDefault(r => r.Id == command.ReservationId)
             ?? throw new NotFoundException("Reservation not found.");
 
         reservation.Cancel();
-        _repository.Save(kit);
+        await _repository.SaveAsync(kit, cancellationToken);
     }
 }

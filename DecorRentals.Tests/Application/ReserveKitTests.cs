@@ -9,12 +9,12 @@ namespace DecorRental.Tests.Application;
 public class ReserveKitTests
 {
     [Fact]
-    public void Should_reserve_kit_when_period_is_available()
+    public async Task Should_reserve_kit_when_period_is_available()
     {
         var kit = new Kit("Basic Kit");
 
         var repository = new FakeKitRepository();
-        repository.Add(kit);
+        await repository.AddAsync(kit);
 
         var command = new ReserveKitCommand(
             kit.Id,
@@ -23,28 +23,28 @@ public class ReserveKitTests
 
         var handler = new ReserveKitHandler(repository);
 
-        handler.Handle(command);
+        await handler.HandleAsync(command);
 
         Assert.Single(kit.Reservations);
     }
 
     [Fact]
-    public void Should_throw_exception_when_period_conflicts()
+    public async Task Should_throw_exception_when_period_conflicts()
     {
         var kit = new Kit("Basic Kit");
 
         var repository = new FakeKitRepository();
-        repository.Add(kit);
+        await repository.AddAsync(kit);
 
         var handler = new ReserveKitHandler(repository);
 
-        handler.Handle(new ReserveKitCommand(
+        await handler.HandleAsync(new ReserveKitCommand(
             kit.Id,
             new DateOnly(2026, 1, 10),
             new DateOnly(2026, 1, 12)));
 
-        Assert.Throws<ConflictException>(() =>
-            handler.Handle(new ReserveKitCommand(
+        await Assert.ThrowsAsync<ConflictException>(async () =>
+            await handler.HandleAsync(new ReserveKitCommand(
                 kit.Id,
                 new DateOnly(2026, 1, 11),
                 new DateOnly(2026, 1, 13))));

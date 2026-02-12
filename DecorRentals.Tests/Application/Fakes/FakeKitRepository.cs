@@ -7,15 +7,21 @@ public class FakeKitRepository : IKitRepository
 {
     private readonly Dictionary<Guid, Kit> _storage = new();
 
-    public Kit? GetById(Guid id)
-        => _storage.TryGetValue(id, out var kit) ? kit : null;
+    public Task<Kit?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+        => Task.FromResult(_storage.TryGetValue(id, out var kit) ? kit : null);
 
-    public IReadOnlyList<Kit> GetAll()
-        => _storage.Values.ToList();
+    public Task<IReadOnlyList<Kit>> GetAllAsync(CancellationToken cancellationToken = default)
+        => Task.FromResult<IReadOnlyList<Kit>>(_storage.Values.ToList());
 
-    public void Add(Kit kit)
-        => _storage[kit.Id] = kit;
+    public Task AddAsync(Kit kit, CancellationToken cancellationToken = default)
+    {
+        _storage[kit.Id] = kit;
+        return Task.CompletedTask;
+    }
 
-    public void Save(Kit kit)
-        => _storage[kit.Id] = kit;
+    public Task SaveAsync(Kit kit, CancellationToken cancellationToken = default)
+    {
+        _storage[kit.Id] = kit;
+        return Task.CompletedTask;
+    }
 }

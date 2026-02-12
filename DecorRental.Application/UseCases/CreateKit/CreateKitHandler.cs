@@ -12,10 +12,10 @@ public sealed class CreateKitHandler
         _repository = repository;
     }
 
-    public Guid Handle(CreateKitCommand command)
+    public async Task<Guid> HandleAsync(CreateKitCommand command, CancellationToken cancellationToken = default)
     {
         var kit = new Kit(command.Name);
-        _repository.Add(kit);
+        await _repository.AddAsync(kit, cancellationToken);
 
         return kit.Id;
     }
