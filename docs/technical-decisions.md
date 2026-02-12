@@ -1,0 +1,111 @@
+# Decisões Técnicas e Trade-offs
+
+## 1) Arquitetura em camadas
+
+**Decisão**
+- Separar o sistema em `Domain`, `Application`, `Infrastructure` e `Api`.
+
+**Motivo**
+- Isolar regra de negócio de detalhes de framework e persistência.
+
+**Trade-off**
+- Mais arquivos e mais wiring de DI.
+
+## 2) Regra de conflito no domínio
+
+**Decisão**
+- A verificação de overlap fica na entidade `Kit`.
+
+**Motivo**
+- Regra crítica de negócio deve estar no centro do sistema.
+
+**Trade-off**
+- Testes de domínio são obrigatórios para evitar regressão.
+
+## 3) Cancelamento no aggregate root
+
+**Decisão**
+- Cancelamento ocorre via `Kit.CancelReservation`.
+
+**Motivo**
+- Evitar que camada de aplicação manipule diretamente coleção interna.
+
+**Trade-off**
+- O aggregate root concentra mais responsabilidades comportamentais.
+
+## 4) Persistência com EF Core + SQLite
+
+**Decisão**
+- SQLite para simplicidade de execução local e portfólio.
+
+**Motivo**
+- Setup rápido para demonstração técnica.
+
+**Trade-off**
+- Não representa cenários de alta concorrência de banco de produção.
+
+## 5) Paginação no banco
+
+**Decisão**
+- `GetPageAsync` e `CountAsync` no repositório.
+
+**Motivo**
+- Evitar paginação em memória e reduzir custo de leitura.
+
+**Trade-off**
+- Contrato de repositório fica mais orientado a consulta.
+
+## 6) Validação de entrada na API
+
+**Decisão**
+- FluentValidation para requests (`CreateKit`, `ReserveKit`, `GetKits`).
+
+**Motivo**
+- Falhar cedo, manter handlers focados em caso de uso.
+
+**Trade-off**
+- Dependência adicional e configuração de pipeline.
+
+## 7) Contrato de erro consistente
+
+**Decisão**
+- Middleware central converte exceções em payload `ErrorResponse`.
+
+**Motivo**
+- Previsibilidade para cliente (frontend/Postman/testes).
+
+**Trade-off**
+- Menos detalhamento por campo do que `ProblemDetails` completo.
+
+## 8) Assincronia ponta a ponta
+
+**Decisão**
+- Use cases, repositório e controller em `async`.
+
+**Motivo**
+- Melhor uso de recursos I/O em API real.
+
+**Trade-off**
+- Código ligeiramente mais verboso.
+
+## 9) Testes
+
+**Decisão**
+- Combinar testes unitários (domínio/aplicação) com integração HTTP.
+
+**Motivo**
+- Cobrir regra de negócio e comportamento real de endpoint.
+
+**Trade-off**
+- Tempo de execução maior que suíte somente unitária.
+
+## 10) CI simples e objetivo
+
+**Decisão**
+- Pipeline com `restore`, `build` e `test`.
+
+**Motivo**
+- Garantir baseline de qualidade em push e PR.
+
+**Trade-off**
+- Ainda não inclui quality gates avançados (coverage mínima, SAST).

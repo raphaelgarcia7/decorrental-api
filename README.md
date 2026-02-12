@@ -1,53 +1,63 @@
 # DecorRental API
 
-API for managing decoration kits and reservations with conflict prevention. Built as a portfolio project using Clean Architecture, domain-first modeling, and tests.
+API para gestão de kits de decoração e reservas por período.
 
-## Architecture
+## Objetivo
 
-- DecorRental.Domain: entities, value objects, domain rules
-- DecorRental.Application: use cases (commands/handlers)
-- DecorRental.Infrastructure: EF Core + SQLite persistence
-- DecorRental.Api: HTTP endpoints and composition root
+Demonstrar arquitetura em camadas (Domain, Application, Infrastructure, Api), foco em regra de negócio e testes automatizados.
 
-## Business rule
+## Regra de negócio principal
 
-- A kit cannot be reserved if there is an overlapping active reservation.
-- Cancelled reservations do not block new reservations.
+- Um kit não pode ter duas reservas ativas com período sobreposto.
+- Reserva cancelada não bloqueia novo período.
 
-## How to run
+## Stack
 
-1. Restore and build
-```
+- .NET 9
+- ASP.NET Core Web API
+- EF Core 9 + SQLite
+- FluentValidation
+- xUnit
+
+## Arquitetura
+
+- `DecorRental.Domain`: entidades, value objects e regras de negócio
+- `DecorRental.Application`: casos de uso e orquestração
+- `DecorRental.Infrastructure`: persistência EF Core
+- `DecorRental.Api`: endpoints, validação e middleware
+
+## Como executar
+
+```bash
 dotnet build
-```
-
-2. Run the API
-```
 dotnet run --project .\DecorRental.Api
 ```
 
-The API applies EF Core migrations automatically on startup and creates `decorental.db` if it does not exist.
+A API aplica migrations no startup.
 
-## Tests
+## Testes
 
-```
+```bash
 dotnet test
 ```
 
-The test suite includes unit tests and API integration tests.
+Inclui testes unitários e testes de integração HTTP.
+
+## Endpoints
+
+- `POST /api/kits`
+- `GET /api/kits?page=1&pageSize=20`
+- `GET /api/kits/{id}`
+- `GET /api/kits/{id}/reservations`
+- `POST /api/kits/{id}/reservations`
+- `POST /api/kits/{id}/reservations/{reservationId}/cancel`
 
 ## CI
 
-GitHub Actions workflow: `.github/workflows/ci.yml`
+Workflow em `.github/workflows/ci.yml`.
 
-## Endpoints (summary)
+## Referências rápidas
 
-- POST /api/kits
-- GET /api/kits
-- GET /api/kits?page=1&pageSize=20
-- GET /api/kits/{id}
-- GET /api/kits/{id}/reservations
-- POST /api/kits/{id}/reservations
-- POST /api/kits/{id}/reservations/{reservationId}/cancel
-
-See `DecorRental.Api/decorrental-api.http` for sample requests.
+- coleção Postman: `DecorRental.postman_collection.json`
+- requisições HTTP: `DecorRental.Api/decorrental-api.http`
+- decisões técnicas: `docs/technical-decisions.md`
