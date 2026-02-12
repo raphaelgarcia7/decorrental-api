@@ -53,6 +53,52 @@ public sealed class KitsApiTests : IClassFixture<DecorRentalApiFactory>
     }
 
     [Fact]
+    public async Task Reserve_endpoint_should_return_bad_request_when_end_date_is_before_start_date()
+    {
+        var kitId = await CreateKitAsync("Validation Kit");
+
+        var invalidResponse = await _httpClient.PostAsJsonAsync(
+            $"/api/kits/{kitId}/reservations",
+            new ReserveKitRequest("2026-06-10", "2026-06-09"));
+
+        Assert.Equal(HttpStatusCode.BadRequest, invalidResponse.StatusCode);
+
+        var error = await invalidResponse.Content.ReadFromJsonAsync<ErrorResponse>();
+        Assert.NotNull(error);
+        Assert.Equal("validation_error", error.Code);
+    }
+
+    [Fact]
+    public async Task Get_kits_endpoint_should_return_paginated_result()
+    {
+        await CreateKitAsync("Paged Kit A");
+        await CreateKitAsync("Paged Kit B");
+        await CreateKitAsync("Paged Kit C");
+
+        var response = await _httpClient.GetAsync("/api/kits?page=1&pageSize=2");
+        var pagedResponse = await response.Content.ReadFromJsonAsync<PagedResponse<KitSummaryResponse>>();
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.NotNull(pagedResponse);
+        Assert.Equal(1, pagedResponse.Page);
+        Assert.Equal(2, pagedResponse.PageSize);
+        Assert.Equal(2, pagedResponse.Items.Count);
+        Assert.True(pagedResponse.TotalCount >= 3);
+    }
+
+    [Fact]
+    public async Task Get_kits_endpoint_should_return_bad_request_when_page_size_is_invalid()
+    {
+        var response = await _httpClient.GetAsync("/api/kits?page=1&pageSize=101");
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+
+        var error = await response.Content.ReadFromJsonAsync<ErrorResponse>();
+        Assert.NotNull(error);
+        Assert.Equal("validation_error", error.Code);
+    }
+
+    [Fact]
     public async Task Cancel_endpoint_should_free_period_for_new_reservation()
     {
         var kitId = await CreateKitAsync("Cancel Kit");
@@ -103,4 +149,10 @@ public sealed class KitsApiTests : IClassFixture<DecorRentalApiFactory>
     private sealed record ReservationResponse(Guid Id, string StartDate, string EndDate, string Status);
 
     private sealed record ErrorResponse(string Code, string Message);
+
+    private sealed record PagedResponse<TItem>(
+        IReadOnlyList<TItem> Items,
+        int Page,
+        int PageSize,
+        int TotalCount);
 }
