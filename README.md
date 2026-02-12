@@ -38,6 +38,7 @@ dotnet test
 
 - POST /api/kits
 - GET /api/kits
+- GET /api/kits?page=1&pageSize=20
 - GET /api/kits/{id}
 - GET /api/kits/{id}/reservations
 - POST /api/kits/{id}/reservations

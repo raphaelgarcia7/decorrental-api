@@ -1,10 +1,13 @@
 using DecorRental.Api.Middleware;
+using DecorRental.Api.Validators;
 using DecorRental.Application.UseCases.CancelReservation;
 using DecorRental.Application.UseCases.CreateKit;
 using DecorRental.Application.UseCases.GetKitById;
 using DecorRental.Application.UseCases.GetKits;
 using DecorRental.Application.UseCases.ReserveKit;
 using DecorRental.Domain.Repositories;
+using FluentValidation;
+using FluentValidation.AspNetCore;
 using DecorRental.Infrastructure.Persistence;
 using DecorRental.Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
@@ -26,7 +29,30 @@ builder.Services.AddScoped<GetKitsHandler>();
 builder.Services.AddScoped<CancelReservationHandler>();
 builder.Services.AddScoped<ReserveKitHandler>();
 
-builder.Services.AddControllers();
+builder.Services.AddValidatorsFromAssemblyContaining<CreateKitRequestValidator>();
+builder.Services.AddFluentValidationAutoValidation();
+
+builder.Services
+    .AddControllers()
+    .ConfigureApiBehaviorOptions(options =>
+    {
+        options.InvalidModelStateResponseFactory = context =>
+        {
+            var errors = context.ModelState
+                .Values
+                .SelectMany(value => value.Errors)
+                .Select(error => error.ErrorMessage)
+                .Where(message => !string.IsNullOrWhiteSpace(message))
+                .ToArray();
+
+            var message = errors.Length > 0
+                ? string.Join(" ", errors)
+                : "Validation failed.";
+
+            return new Microsoft.AspNetCore.Mvc.BadRequestObjectResult(
+                new DecorRental.Api.Contracts.ErrorResponse("validation_error", message));
+        };
+    });
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 

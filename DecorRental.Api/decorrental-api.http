@@ -9,7 +9,7 @@ Content-Type: application/json
 }
 
 ### List kits
-GET {{decorrental_api_HostAddress}}/api/kits
+GET {{decorrental_api_HostAddress}}/api/kits?page=1&pageSize=20
 Accept: application/json
 
 ### Get kit by id

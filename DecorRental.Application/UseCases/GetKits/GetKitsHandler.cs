@@ -1,4 +1,3 @@
-using DecorRental.Domain.Entities;
 using DecorRental.Domain.Repositories;
 
 namespace DecorRental.Application.UseCases.GetKits;
@@ -12,8 +11,16 @@ public sealed class GetKitsHandler
         _repository = repository;
     }
 
-    public IReadOnlyList<Kit> Handle(GetKitsQuery query)
+    public GetKitsResult Handle(GetKitsQuery query)
     {
-        return _repository.GetAll();
+        var kits = _repository.GetAll();
+        var totalCount = kits.Count;
+
+        var items = kits
+            .Skip((query.Page - 1) * query.PageSize)
+            .Take(query.PageSize)
+            .ToList();
+
+        return new GetKitsResult(items, query.Page, query.PageSize, totalCount);
     }
 }

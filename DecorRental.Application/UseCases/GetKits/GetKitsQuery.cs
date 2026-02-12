@@ -1,3 +1,3 @@
 namespace DecorRental.Application.UseCases.GetKits;
 
-public record GetKitsQuery;
+public sealed record GetKitsQuery(int Page, int PageSize);

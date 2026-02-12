@@ -44,11 +44,15 @@ public class KitsController : ControllerBase
     }
 
     [HttpGet]
-    [ProducesResponseType(typeof(IReadOnlyList<KitSummaryResponse>), StatusCodes.Status200OK)]
-    public IActionResult GetAll()
+    [ProducesResponseType(typeof(PagedResponse<KitSummaryResponse>), StatusCodes.Status200OK)]
+    public IActionResult GetAll([FromQuery] GetKitsRequest request)
     {
-        var kits = _getKitsHandler.Handle(new GetKitsQuery());
-        var response = kits.Select(ToSummary).ToList();
+        var result = _getKitsHandler.Handle(new GetKitsQuery(request.Page, request.PageSize));
+        var response = new PagedResponse<KitSummaryResponse>(
+            result.Items.Select(ToSummary).ToList(),
+            result.Page,
+            result.PageSize,
+            result.TotalCount);
 
         return Ok(response);
     }
