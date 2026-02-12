@@ -39,6 +39,7 @@ dotnet test
 - POST /api/kits
 - GET /api/kits
 - GET /api/kits/{id}
+- GET /api/kits/{id}/reservations
 - POST /api/kits/{id}/reservations
 - POST /api/kits/{id}/reservations/{reservationId}/cancel
 

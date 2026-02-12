@@ -17,6 +17,11 @@ Accept: application/json
 GET {{decorrental_api_HostAddress}}/api/kits/{id}
 Accept: application/json
 
+### Get kit reservations
+# Substitua o {id} pelo id retornado na criação
+GET {{decorrental_api_HostAddress}}/api/kits/{id}/reservations
+Accept: application/json
+
 ### Reserve kit
 POST {{decorrental_api_HostAddress}}/api/kits/{id}/reservations
 Content-Type: application/json

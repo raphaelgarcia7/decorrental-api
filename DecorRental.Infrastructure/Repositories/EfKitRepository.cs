@@ -33,7 +33,28 @@ public class EfKitRepository : IKitRepository
 
     public void Save(Kit kit)
     {
-        _context.Update(kit);
+        if (_context.Entry(kit).State == EntityState.Detached)
+        {
+            _context.Kits.Attach(kit);
+        }
+
+        foreach (var reservation in kit.Reservations)
+        {
+            var entry = _context.Entry(reservation);
+            var exists = _context.Reservations.Any(r => r.Id == reservation.Id);
+
+            if (!exists)
+            {
+                entry.State = EntityState.Added;
+                continue;
+            }
+
+            if (entry.State == EntityState.Detached)
+            {
+                entry.State = EntityState.Modified;
+            }
+        }
+
         _context.SaveChanges();
     }
 }

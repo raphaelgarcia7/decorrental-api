@@ -63,6 +63,22 @@ public class KitsController : ControllerBase
         return Ok(response);
     }
 
+    [HttpGet("{id:guid}/reservations")]
+    [ProducesResponseType(typeof(IReadOnlyList<ReservationResponse>), StatusCodes.Status200OK)]
+    public IActionResult GetReservations(Guid id)
+    {
+        var kit = _getKitByIdHandler.Handle(new GetKitByIdQuery(id));
+        var response = kit.Reservations
+            .Select(r => new ReservationResponse(
+                r.Id,
+                r.Period.Start,
+                r.Period.End,
+                r.Status.ToString()))
+            .ToList();
+
+        return Ok(response);
+    }
+
     [HttpPost("{id:guid}/reservations")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     public IActionResult Reserve(Guid id, [FromBody] ReserveKitRequest request)

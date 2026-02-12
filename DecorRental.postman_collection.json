@@ -68,6 +68,25 @@
       }
     },
     {
+      "name": "Get kit reservations",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/kits/{{kitId}}/reservations",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "kits",
+            "{{kitId}}",
+            "reservations"
+          ]
+        }
+      }
+    },
+    {
       "name": "Reserve kit",
       "request": {
         "method": "POST",
