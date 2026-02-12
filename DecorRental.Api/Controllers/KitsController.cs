@@ -73,11 +73,11 @@ public class KitsController : ControllerBase
     {
         var kit = await _getKitByIdHandler.HandleAsync(new GetKitByIdQuery(id), cancellationToken);
         var response = kit.Reservations
-            .Select(r => new ReservationResponse(
-                r.Id,
-                r.Period.Start,
-                r.Period.End,
-                r.Status.ToString()))
+            .Select(reservation => new ReservationResponse(
+                reservation.Id,
+                reservation.Period.Start,
+                reservation.Period.End,
+                reservation.Status.ToString()))
             .ToList();
 
         return Ok(response);
@@ -111,11 +111,11 @@ public class KitsController : ControllerBase
     private static KitDetailResponse ToDetail(Kit kit)
     {
         var reservations = kit.Reservations
-            .Select(r => new ReservationResponse(
-                r.Id,
-                r.Period.Start,
-                r.Period.End,
-                r.Status.ToString()))
+            .Select(reservation => new ReservationResponse(
+                reservation.Id,
+                reservation.Period.Start,
+                reservation.Period.End,
+                reservation.Status.ToString()))
             .ToList();
 
         return new KitDetailResponse(kit.Id, kit.Name, reservations);

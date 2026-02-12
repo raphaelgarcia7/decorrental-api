@@ -20,6 +20,9 @@ namespace DecorRental.Domain.Entities
 
         public void Cancel()
         {
+            if (Status == ReservationStatus.Cancelled)
+                return;
+
             Status = ReservationStatus.Cancelled;
         }
 

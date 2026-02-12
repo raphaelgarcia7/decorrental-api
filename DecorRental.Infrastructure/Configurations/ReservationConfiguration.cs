@@ -17,17 +17,17 @@ public sealed class ReservationConfiguration : IEntityTypeConfiguration<Reservat
         builder.OwnsOne(reservation => reservation.Period, period =>
         {
             // SQLite não lida bem com DateOnly, então convertemos para DateTime
-            period.Property(p => p.Start)
+            period.Property(dateRange => dateRange.Start)
                 .HasColumnName("StartDate")
                 .HasConversion(
-                    v => v.ToDateTime(TimeOnly.MinValue),
-                    v => DateOnly.FromDateTime(v));
+                    date => date.ToDateTime(TimeOnly.MinValue),
+                    dateTime => DateOnly.FromDateTime(dateTime));
 
-            period.Property(p => p.End)
+            period.Property(dateRange => dateRange.End)
                 .HasColumnName("EndDate")
                 .HasConversion(
-                    v => v.ToDateTime(TimeOnly.MinValue),
-                    v => DateOnly.FromDateTime(v));
+                    date => date.ToDateTime(TimeOnly.MinValue),
+                    dateTime => DateOnly.FromDateTime(dateTime));
         });
     }
 }

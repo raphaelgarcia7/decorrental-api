@@ -21,7 +21,7 @@ public sealed class KitConfiguration : IEntityTypeConfiguration<Kit>
             .OnDelete(DeleteBehavior.Cascade);
 
         // Garante que o EF use o campo privado em vez da propriedade read-only
-        builder.Navigation(k => k.Reservations)
+        builder.Navigation(kit => kit.Reservations)
             .UsePropertyAccessMode(PropertyAccessMode.Field);
     }
 }

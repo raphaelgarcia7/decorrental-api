@@ -22,14 +22,23 @@ public class Kit
 
     public void Reserve(DateRange period)
     {
-        var hasConflict = _reservations.Any(r =>
-            r.Status == ReservationStatus.Active &&
-            r.Period.Overlaps(period));
+        var hasConflict = _reservations.Any(reservation =>
+            reservation.Status == ReservationStatus.Active &&
+            reservation.Period.Overlaps(period));
 
         if (hasConflict)
             throw new ConflictException("Kit is already reserved for this period.");
 
         _reservations.Add(new Reservation(Id, period));
+    }
+
+    public void CancelReservation(Guid reservationId)
+    {
+        var reservation = _reservations.FirstOrDefault(currentReservation => currentReservation.Id == reservationId);
+        if (reservation is null)
+            throw new DomainException("Reservation not found for this kit.");
+
+        reservation.Cancel();
     }
 
     private readonly List<Reservation> _reservations = new();

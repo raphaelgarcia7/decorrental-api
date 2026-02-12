@@ -17,10 +17,13 @@ public sealed class CancelReservationHandler
         var kit = await _repository.GetByIdAsync(command.KitId, cancellationToken)
             ?? throw new NotFoundException("Kit not found.");
 
-        var reservation = kit.Reservations.FirstOrDefault(r => r.Id == command.ReservationId)
-            ?? throw new NotFoundException("Reservation not found.");
+        var hasReservation = kit.Reservations.Any(reservation => reservation.Id == command.ReservationId);
+        if (!hasReservation)
+        {
+            throw new NotFoundException("Reservation not found.");
+        }
 
-        reservation.Cancel();
+        kit.CancelReservation(command.ReservationId);
         await _repository.SaveAsync(kit, cancellationToken);
     }
 }
