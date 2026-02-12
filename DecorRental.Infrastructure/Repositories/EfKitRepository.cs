@@ -19,11 +19,17 @@ public class EfKitRepository : IKitRepository
             .Include(kit => kit.Reservations)
             .FirstOrDefaultAsync(kit => kit.Id == id, cancellationToken);
 
-    public async Task<IReadOnlyList<Kit>> GetAllAsync(CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<Kit>> GetPageAsync(int page, int pageSize, CancellationToken cancellationToken = default)
         => await _context.Kits
             .Include(kit => kit.Reservations)
             .AsNoTracking()
+            .OrderBy(kit => kit.Name)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
             .ToListAsync(cancellationToken);
+
+    public Task<int> CountAsync(CancellationToken cancellationToken = default)
+        => _context.Kits.CountAsync(cancellationToken);
 
     public async Task AddAsync(Kit kit, CancellationToken cancellationToken = default)
     {
@@ -35,25 +41,20 @@ public class EfKitRepository : IKitRepository
     {
         if (_context.Entry(kit).State == EntityState.Detached)
         {
-            _context.Kits.Attach(kit);
+            throw new InvalidOperationException("Kit must be tracked before saving changes.");
         }
+
+        var existingReservationIds = await _context.Reservations
+            .AsNoTracking()
+            .Where(reservation => reservation.KitId == kit.Id)
+            .Select(reservation => reservation.Id)
+            .ToHashSetAsync(cancellationToken);
 
         foreach (var reservation in kit.Reservations)
         {
-            var entry = _context.Entry(reservation);
-            var exists = await _context.Reservations.AnyAsync(
-                r => r.Id == reservation.Id,
-                cancellationToken);
-
-            if (!exists)
+            if (!existingReservationIds.Contains(reservation.Id))
             {
-                entry.State = EntityState.Added;
-                continue;
-            }
-
-            if (entry.State == EntityState.Detached)
-            {
-                entry.State = EntityState.Modified;
+                _context.Entry(reservation).State = EntityState.Added;
             }
         }
 

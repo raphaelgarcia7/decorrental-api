@@ -13,13 +13,8 @@ public sealed class GetKitsHandler
 
     public async Task<GetKitsResult> HandleAsync(GetKitsQuery query, CancellationToken cancellationToken = default)
     {
-        var kits = await _repository.GetAllAsync(cancellationToken);
-        var totalCount = kits.Count;
-
-        var items = kits
-            .Skip((query.Page - 1) * query.PageSize)
-            .Take(query.PageSize)
-            .ToList();
+        var totalCount = await _repository.CountAsync(cancellationToken);
+        var items = await _repository.GetPageAsync(query.Page, query.PageSize, cancellationToken);
 
         return new GetKitsResult(items, query.Page, query.PageSize, totalCount);
     }

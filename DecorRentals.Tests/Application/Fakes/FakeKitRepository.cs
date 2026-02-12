@@ -10,8 +10,19 @@ public class FakeKitRepository : IKitRepository
     public Task<Kit?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
         => Task.FromResult(_storage.TryGetValue(id, out var kit) ? kit : null);
 
-    public Task<IReadOnlyList<Kit>> GetAllAsync(CancellationToken cancellationToken = default)
-        => Task.FromResult<IReadOnlyList<Kit>>(_storage.Values.ToList());
+    public Task<IReadOnlyList<Kit>> GetPageAsync(int page, int pageSize, CancellationToken cancellationToken = default)
+    {
+        var items = _storage.Values
+            .OrderBy(kit => kit.Name)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToList();
+
+        return Task.FromResult<IReadOnlyList<Kit>>(items);
+    }
+
+    public Task<int> CountAsync(CancellationToken cancellationToken = default)
+        => Task.FromResult(_storage.Count);
 
     public Task AddAsync(Kit kit, CancellationToken cancellationToken = default)
     {
