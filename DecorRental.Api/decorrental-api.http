@@ -1,0 +1,60 @@
+﻿@baseUrl = http://localhost:5123
+@accessToken =
+@authUsername =
+@authPassword =
+
+### Generate token
+POST {{baseUrl}}/api/auth/token
+Content-Type: application/json
+
+{
+  "username": "{{authUsername}}",
+  "password": "{{authPassword}}"
+}
+
+### Create kit
+POST {{baseUrl}}/api/kits
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "name": "Basic Kit"
+}
+
+### List kits
+GET {{baseUrl}}/api/kits?page=1&pageSize=20
+Authorization: Bearer {{accessToken}}
+Accept: application/json
+
+### Get kit by id
+# Replace {id} with a real kit id
+GET {{baseUrl}}/api/kits/{id}
+Authorization: Bearer {{accessToken}}
+Accept: application/json
+
+### Get kit reservations
+# Replace {id} with a real kit id
+GET {{baseUrl}}/api/kits/{id}/reservations
+Authorization: Bearer {{accessToken}}
+Accept: application/json
+
+### Reserve kit
+POST {{baseUrl}}/api/kits/{id}/reservations
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "startDate": "2026-02-15",
+  "endDate": "2026-02-18"
+}
+
+### Cancel reservation
+# Replace {reservationId} with a real reservation id
+POST {{baseUrl}}/api/kits/{id}/reservations/{reservationId}/cancel
+Authorization: Bearer {{accessToken}}
+
+### Health check
+GET {{baseUrl}}/health
+
+### Metrics (Prometheus format)
+GET {{baseUrl}}/metrics

@@ -1,0 +1,26 @@
+# =====================
+# .NET / Visual Studio
+# =====================
+
+.vs/
+.vscode/
+.idea/
+
+bin/
+obj/
+
+# User-specific files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Rider
+*.DotSettings.user
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Local databases
+*.db
