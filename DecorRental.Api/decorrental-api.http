@@ -1,7 +1,18 @@
-@decorrental_api_HostAddress = http://localhost:5123
+ï»¿@baseUrl = http://localhost:5123
+@accessToken =
+
+### Generate token (manager)
+POST {{baseUrl}}/api/auth/token
+Content-Type: application/json
+
+{
+  "username": "manager",
+  "password": "manager123"
+}
 
 ### Create kit
-POST {{decorrental_api_HostAddress}}/api/kits
+POST {{baseUrl}}/api/kits
+Authorization: Bearer {{accessToken}}
 Content-Type: application/json
 
 {
@@ -9,21 +20,25 @@ Content-Type: application/json
 }
 
 ### List kits
-GET {{decorrental_api_HostAddress}}/api/kits?page=1&pageSize=20
+GET {{baseUrl}}/api/kits?page=1&pageSize=20
+Authorization: Bearer {{accessToken}}
 Accept: application/json
 
 ### Get kit by id
-# Substitua o {id} pelo id retornado na criação
-GET {{decorrental_api_HostAddress}}/api/kits/{id}
+# Replace {id} with a real kit id
+GET {{baseUrl}}/api/kits/{id}
+Authorization: Bearer {{accessToken}}
 Accept: application/json
 
 ### Get kit reservations
-# Substitua o {id} pelo id retornado na criação
-GET {{decorrental_api_HostAddress}}/api/kits/{id}/reservations
+# Replace {id} with a real kit id
+GET {{baseUrl}}/api/kits/{id}/reservations
+Authorization: Bearer {{accessToken}}
 Accept: application/json
 
 ### Reserve kit
-POST {{decorrental_api_HostAddress}}/api/kits/{id}/reservations
+POST {{baseUrl}}/api/kits/{id}/reservations
+Authorization: Bearer {{accessToken}}
 Content-Type: application/json
 
 {
@@ -32,5 +47,12 @@ Content-Type: application/json
 }
 
 ### Cancel reservation
-# Substitua o {reservationId} pelo id retornado no detalhe do kit
-POST {{decorrental_api_HostAddress}}/api/kits/{id}/reservations/{reservationId}/cancel
+# Replace {reservationId} with a real reservation id
+POST {{baseUrl}}/api/kits/{id}/reservations/{reservationId}/cancel
+Authorization: Bearer {{accessToken}}
+
+### Health check
+GET {{baseUrl}}/health
+
+### Metrics (Prometheus format)
+GET {{baseUrl}}/metrics

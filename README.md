@@ -1,30 +1,32 @@
-# DecorRental API
+ï»¿# DecorRental API
 
-API para gestão de kits de decoração e reservas por período.
+API para gestao de kits de decoracao e reservas por periodo.
 
 ## Objetivo
 
-Demonstrar arquitetura em camadas (Domain, Application, Infrastructure, Api), foco em regra de negócio e testes automatizados.
+Demonstrar arquitetura em camadas (`Domain`, `Application`, `Infrastructure`, `Api`) com regra de negocio central no dominio, validacao, testes automatizados e observabilidade basica.
 
-## Regra de negócio principal
+## Regra de negocio principal
 
-- Um kit não pode ter duas reservas ativas com período sobreposto.
-- Reserva cancelada não bloqueia novo período.
+- Um kit nao pode ter duas reservas ativas com periodo sobreposto.
+- Reserva cancelada nao bloqueia novo periodo.
 
 ## Stack
 
 - .NET 9
 - ASP.NET Core Web API
 - EF Core 9 + SQLite
+- JWT Bearer Authentication
 - FluentValidation
-- xUnit
+- Prometheus metrics + Health Checks
+- xUnit (unitario + integracao)
 
 ## Arquitetura
 
-- `DecorRental.Domain`: entidades, value objects e regras de negócio
-- `DecorRental.Application`: casos de uso e orquestração
-- `DecorRental.Infrastructure`: persistência EF Core
-- `DecorRental.Api`: endpoints, validação e middleware
+- `DecorRental.Domain`: entidades, value objects e regras de negocio.
+- `DecorRental.Application`: casos de uso e orquestracao.
+- `DecorRental.Infrastructure`: persistencia EF Core.
+- `DecorRental.Api`: controllers, autenticacao/autorizacao, validacao, middleware e contrato HTTP.
 
 ## Como executar
 
@@ -35,16 +37,36 @@ dotnet run --project .\DecorRental.Api
 
 A API aplica migrations no startup.
 
-## Testes
+## Autenticacao (JWT)
 
-```bash
-dotnet test
-```
+1. Gere token em `POST /api/auth/token`.
+2. Envie `Authorization: Bearer {token}` nas rotas protegidas.
 
-Inclui testes unitários e testes de integração HTTP.
+Usuarios locais de desenvolvimento (configurados em `DecorRental.Api/appsettings.json`):
+
+- `viewer` / `viewer123` (somente leitura)
+- `manager` / `manager123` (leitura + escrita)
+- `admin` / `admin123` (leitura + escrita)
+
+## Contrato de erro
+
+Erros retornam `application/problem+json` com `ProblemDetails` e extensoes:
+
+- `code`
+- `traceId`
+- `correlationId`
+- `errors` (quando falha de validacao)
+
+## Observabilidade
+
+- Correlation id por request (`X-Correlation-Id`).
+- Logs estruturados em JSON.
+- Health check: `GET /health`.
+- Metrics em formato Prometheus: `GET /metrics`.
 
 ## Endpoints
 
+- `POST /api/auth/token`
 - `POST /api/kits`
 - `GET /api/kits?page=1&pageSize=20`
 - `GET /api/kits/{id}`
@@ -52,12 +74,15 @@ Inclui testes unitários e testes de integração HTTP.
 - `POST /api/kits/{id}/reservations`
 - `POST /api/kits/{id}/reservations/{reservationId}/cancel`
 
-## CI
+## Testes
 
-Workflow em `.github/workflows/ci.yml`.
+```bash
+dotnet test
+```
 
-## Referências rápidas
+## Referencias rapidas
 
-- coleção Postman: `DecorRental.postman_collection.json`
-- requisições HTTP: `DecorRental.Api/decorrental-api.http`
-- decisões técnicas: `docs/technical-decisions.md`
+- CI: `.github/workflows/ci.yml`
+- Postman: `DecorRental.postman_collection.json`
+- HTTP requests: `DecorRental.Api/decorrental-api.http`
+- Decisoes tecnicas: `docs/technical-decisions.md`
