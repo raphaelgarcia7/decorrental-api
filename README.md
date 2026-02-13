@@ -1,15 +1,17 @@
 ﻿# DecorRental API
 
-API para gestao de kits de decoracao e reservas por periodo.
+![Demonstração DecorRental](https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExcW9hM2txcGx5d2l4eDc4aTlkM2Y3MzduN2F6cnNnbm5jMHo3NnBvaiZlcD12MV9naWZzX3NlYXJjaCZjdD1n/13HgwGsXF0aiGY/giphy.gif)
+
+API para gestão de kits de decoração e reservas por período.
 
 ## Objetivo
 
-Demonstrar arquitetura em camadas (`Domain`, `Application`, `Infrastructure`, `Api`) com regra de negocio central no dominio, validacao, testes automatizados e observabilidade basica.
+Demonstrar arquitetura em camadas (`Domain`, `Application`, `Infrastructure`, `Api`) com regra de negócio central no domínio, validação, testes automatizados e observabilidade básica.
 
-## Regra de negocio principal
+## Regra de negócio principal
 
-- Um kit nao pode ter duas reservas ativas com periodo sobreposto.
-- Reserva cancelada nao bloqueia novo periodo.
+- Um kit não pode ter duas reservas ativas com período sobreposto.
+- Reserva cancelada não bloqueia novo período.
 
 ## Stack
 
@@ -19,14 +21,14 @@ Demonstrar arquitetura em camadas (`Domain`, `Application`, `Infrastructure`, `A
 - JWT Bearer Authentication
 - FluentValidation
 - Prometheus metrics + Health Checks
-- xUnit (unitario + integracao)
+- xUnit (unitário + integração)
 
 ## Arquitetura
 
-- `DecorRental.Domain`: entidades, value objects e regras de negocio.
-- `DecorRental.Application`: casos de uso e orquestracao.
-- `DecorRental.Infrastructure`: persistencia EF Core.
-- `DecorRental.Api`: controllers, autenticacao/autorizacao, validacao, middleware e contrato HTTP.
+- `DecorRental.Domain`: entidades, value objects e regras de negócio.
+- `DecorRental.Application`: casos de uso e orquestração.
+- `DecorRental.Infrastructure`: persistência EF Core.
+- `DecorRental.Api`: controllers, autenticação/autorização, validação, middleware e contrato HTTP.
 
 ## Como executar
 
@@ -37,12 +39,12 @@ dotnet run --project .\DecorRental.Api
 
 A API aplica migrations no startup.
 
-## Autenticacao (JWT)
+## Autenticação (JWT)
 
 1. Gere token em `POST /api/auth/token`.
 2. Envie `Authorization: Bearer {token}` nas rotas protegidas.
 
-Usuarios locais de desenvolvimento (configurados em `DecorRental.Api/appsettings.json`):
+Usuários locais de desenvolvimento (configurados em `DecorRental.Api/appsettings.json`):
 
 - `viewer` / `viewer123` (somente leitura)
 - `manager` / `manager123` (leitura + escrita)
@@ -50,12 +52,12 @@ Usuarios locais de desenvolvimento (configurados em `DecorRental.Api/appsettings
 
 ## Contrato de erro
 
-Erros retornam `application/problem+json` com `ProblemDetails` e extensoes:
+Erros retornam `application/problem+json` com `ProblemDetails` e extensões:
 
 - `code`
 - `traceId`
 - `correlationId`
-- `errors` (quando falha de validacao)
+- `errors` (quando falha de validação)
 
 ## Observabilidade
 
@@ -80,9 +82,9 @@ Erros retornam `application/problem+json` com `ProblemDetails` e extensoes:
 dotnet test
 ```
 
-## Referencias rapidas
+## Referências rápidas
 
 - CI: `.github/workflows/ci.yml`
 - Postman: `DecorRental.postman_collection.json`
 - HTTP requests: `DecorRental.Api/decorrental-api.http`
-- Decisoes tecnicas: `docs/technical-decisions.md`
+- Decisões técnicas: `docs/technical-decisions.md`
