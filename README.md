@@ -1,7 +1,5 @@
 ﻿# DecorRental API
-
-![Demonstração DecorRental](https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExcW9hM2txcGx5d2l4eDc4aTlkM2Y3MzduN2F6cnNnbm5jMHo3NnBvaiZlcD12MV9naWZzX3NlYXJjaCZjdD1n/13HgwGsXF0aiGY/giphy.gif)
-
+ 
 API para gestão de kits de decoração e reservas por período.
 
 ## Objetivo
