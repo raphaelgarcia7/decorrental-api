@@ -1,7 +1,6 @@
 ﻿# DecorRental API
 
- <img width="1024" height="1024" alt="image" src="https://github.com/user-attachments/assets/9bcd611e-183a-44c9-bf4a-845d98fb97c4" />
-
+<img width="360" alt="DecorRental" src="https://github.com/user-attachments/assets/9bcd611e-183a-44c9-bf4a-845d98fb97c4" />
 API para gestão de kits de decoração e reservas por período.
 
 ## Contexto real
