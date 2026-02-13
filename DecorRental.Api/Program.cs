@@ -24,18 +24,14 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Logging.ClearProviders();
 builder.Logging.AddJsonConsole();
 
-var jwtOptions = builder.Configuration.GetSection(JwtOptions.SectionName).Get<JwtOptions>() ?? new JwtOptions();
-if (string.IsNullOrWhiteSpace(jwtOptions.SigningKey))
-{
-    throw new InvalidOperationException(
-        $"Missing '{JwtOptions.SectionName}:SigningKey' configuration. Configure JWT settings before running the API.");
-}
-
 builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection(JwtOptions.SectionName));
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
+        var jwtOptions = builder.Configuration.GetSection(JwtOptions.SectionName).Get<JwtOptions>() ?? new JwtOptions();
+        ValidateJwtSecurityConfiguration(jwtOptions);
+
         options.RequireHttpsMetadata = false;
         options.TokenValidationParameters = new TokenValidationParameters
         {
@@ -207,5 +203,21 @@ app.MapHealthChecks("/health");
 app.MapMetrics("/metrics");
 
 app.Run();
+
+static void ValidateJwtSecurityConfiguration(JwtOptions jwtOptions)
+{
+    if (string.IsNullOrWhiteSpace(jwtOptions.Issuer) ||
+        string.IsNullOrWhiteSpace(jwtOptions.Audience) ||
+        string.IsNullOrWhiteSpace(jwtOptions.SigningKey))
+    {
+        throw new InvalidOperationException(
+            $"Missing JWT security configuration. Set '{JwtOptions.SectionName}:Issuer', '{JwtOptions.SectionName}:Audience' and '{JwtOptions.SectionName}:SigningKey'.");
+    }
+
+    if (jwtOptions.SigningKey.Length < 32)
+    {
+        throw new InvalidOperationException("JWT signing key must have at least 32 characters.");
+    }
+}
 
 public partial class Program;

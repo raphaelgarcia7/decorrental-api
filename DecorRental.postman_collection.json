@@ -7,7 +7,7 @@
   },
   "item": [
     {
-      "name": "Generate token (manager)",
+      "name": "Generate token",
       "request": {
         "method": "POST",
         "header": [
@@ -18,7 +18,7 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"username\": \"manager\",\n  \"password\": \"manager123\"\n}"
+          "raw": "{\n  \"username\": \"{{authUsername}}\",\n  \"password\": \"{{authPassword}}\"\n}"
         },
         "url": {
           "raw": "{{baseUrl}}/api/auth/token",
@@ -252,6 +252,14 @@
     },
     {
       "key": "accessToken",
+      "value": ""
+    },
+    {
+      "key": "authUsername",
+      "value": ""
+    },
+    {
+      "key": "authPassword",
       "value": ""
     },
     {

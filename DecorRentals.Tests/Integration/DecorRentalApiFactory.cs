@@ -17,7 +17,20 @@ public sealed class DecorRentalApiFactory : WebApplicationFactory<Program>
         {
             configurationBuilder.AddInMemoryCollection(new Dictionary<string, string?>
             {
-                ["ConnectionStrings:DefaultConnection"] = $"Data Source={_databaseFileName}"
+                ["ConnectionStrings:DefaultConnection"] = $"Data Source={_databaseFileName}",
+                ["Jwt:Issuer"] = "DecorRental.Api.Tests",
+                ["Jwt:Audience"] = "DecorRental.Tests",
+                ["Jwt:SigningKey"] = "DecorRental-Tests-Only-Signing-Key-Should-Be-Long",
+                ["Jwt:TokenExpirationMinutes"] = "60",
+                ["Jwt:Users:0:Username"] = "viewer",
+                ["Jwt:Users:0:Password"] = "viewer123",
+                ["Jwt:Users:0:Role"] = "Viewer",
+                ["Jwt:Users:1:Username"] = "manager",
+                ["Jwt:Users:1:Password"] = "manager123",
+                ["Jwt:Users:1:Role"] = "Manager",
+                ["Jwt:Users:2:Username"] = "admin",
+                ["Jwt:Users:2:Password"] = "admin123",
+                ["Jwt:Users:2:Role"] = "Admin"
             });
         });
     }

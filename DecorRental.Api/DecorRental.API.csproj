@@ -5,6 +5,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>decorrental_api</RootNamespace>
+    <UserSecretsId>decorrental-api-9f2fbd1a-9ed7-4ec7-a6b4-8a0c56dcf34c</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>

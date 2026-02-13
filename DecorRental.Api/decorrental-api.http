@@ -1,13 +1,15 @@
 ﻿@baseUrl = http://localhost:5123
 @accessToken =
+@authUsername =
+@authPassword =
 
-### Generate token (manager)
+### Generate token
 POST {{baseUrl}}/api/auth/token
 Content-Type: application/json
 
 {
-  "username": "manager",
-  "password": "manager123"
+  "username": "{{authUsername}}",
+  "password": "{{authPassword}}"
 }
 
 ### Create kit

@@ -70,6 +70,7 @@
 
 **Decisão**
 - Token JWT com roles (`Viewer`, `Manager`, `Admin`) e policies (`ReadKits`, `ManageKits`).
+- Chave de assinatura e credenciais fora do repositório (User Secrets/variáveis de ambiente).
 
 **Motivo**
 - Cobrir cenário real de controle de acesso em API de portfólio.

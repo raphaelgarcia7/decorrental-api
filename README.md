@@ -39,14 +39,21 @@ A API aplica migrations no startup.
 
 ## Autenticação (JWT)
 
+As credenciais e chave JWT **não ficam versionadas**.
+Configure com User Secrets:
+
+```bash
+dotnet user-secrets --project .\DecorRental.Api set "Jwt:SigningKey" "sua-chave-com-pelo-menos-32-caracteres"
+dotnet user-secrets --project .\DecorRental.Api set "Jwt:Users:0:Username" "viewer"
+dotnet user-secrets --project .\DecorRental.Api set "Jwt:Users:0:Password" "<senha-viewer>"
+dotnet user-secrets --project .\DecorRental.Api set "Jwt:Users:0:Role" "Viewer"
+dotnet user-secrets --project .\DecorRental.Api set "Jwt:Users:1:Username" "manager"
+dotnet user-secrets --project .\DecorRental.Api set "Jwt:Users:1:Password" "<senha-manager>"
+dotnet user-secrets --project .\DecorRental.Api set "Jwt:Users:1:Role" "Manager"
+```
+
 1. Gere token em `POST /api/auth/token`.
 2. Envie `Authorization: Bearer {token}` nas rotas protegidas.
-
-Usuários locais de desenvolvimento (configurados em `DecorRental.Api/appsettings.json`):
-
-- `viewer` / `viewer123` (somente leitura)
-- `manager` / `manager123` (leitura + escrita)
-- `admin` / `admin123` (leitura + escrita)
 
 ## Contrato de erro
 
