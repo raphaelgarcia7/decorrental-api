@@ -1,6 +1,14 @@
 ﻿# DecorRental API
- 
+
+![Demonstração DecorRental](https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExcW9hM2txcGx5d2l4eDc4aTlkM2Y3MzduN2F6cnNnbm5jMHo3NnBvaiZlcD12MV9naWZzX3NlYXJjaCZjdD1n/13HgwGsXF0aiGY/giphy.gif)
+
 API para gestão de kits de decoração e reservas por período.
+
+## Contexto real
+
+Este projeto nasceu para resolver um problema real da empresa de decoração “pegue e monte” da minha mãe.
+Antes, o controle de kits e períodos de reserva era manual, aumentando risco de conflito de agenda e retrabalho.
+A API centraliza essa operação com regras de negócio claras e rastreáveis.
 
 ## Objetivo
 
@@ -87,9 +95,18 @@ Erros retornam `application/problem+json` com `ProblemDetails` e extensões:
 dotnet test
 ```
 
+## Planos futuros
+
+- Criar frontend web (React + TypeScript) para operação diária da locadora.
+- Tela de calendário de disponibilidade por kit.
+- Fluxo de autenticação no frontend com perfis de acesso.
+- Dashboard com indicadores de reservas ativas, canceladas e ocupação.
+- Preparar deploy completo (API + frontend) com ambiente de staging e produção.
+
 ## Referências rápidas
 
 - CI: `.github/workflows/ci.yml`
 - Postman: `DecorRental.postman_collection.json`
 - HTTP requests: `DecorRental.Api/decorrental-api.http`
 - Decisões técnicas: `docs/technical-decisions.md`
+
