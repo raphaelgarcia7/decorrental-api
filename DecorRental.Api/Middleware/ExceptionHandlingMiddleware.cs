@@ -1,8 +1,6 @@
-using System.Net;
-using System.Text.Json;
-using DecorRental.Api.Contracts;
 using DecorRental.Application.Exceptions;
 using DecorRental.Domain.Exceptions;
+using Microsoft.AspNetCore.Mvc;
 
 namespace DecorRental.Api.Middleware;
 
@@ -25,30 +23,34 @@ public sealed class ExceptionHandlingMiddleware
         {
             await _next(context);
         }
-        catch (NotFoundException ex)
+        catch (NotFoundException exception)
         {
-            await WriteErrorAsync(context, HttpStatusCode.NotFound, "not_found", ex.Message);
+            await WriteProblemAsync(context, StatusCodes.Status404NotFound, "not_found", exception.Message);
         }
-        catch (ConflictException ex)
+        catch (ConflictException exception)
         {
-            await WriteErrorAsync(context, HttpStatusCode.Conflict, "conflict", ex.Message);
+            await WriteProblemAsync(context, StatusCodes.Status409Conflict, "conflict", exception.Message);
         }
-        catch (DomainException ex)
+        catch (DomainException exception)
         {
-            await WriteErrorAsync(context, HttpStatusCode.BadRequest, "domain_error", ex.Message);
+            await WriteProblemAsync(context, StatusCodes.Status400BadRequest, "domain_error", exception.Message);
         }
-        catch (Exception ex)
+        catch (Exception exception)
         {
-            _logger.LogError(ex, "Unhandled exception");
-            await WriteErrorAsync(context, HttpStatusCode.InternalServerError, "internal_error", "Unexpected error.");
+            _logger.LogError(exception, "Unhandled exception while processing request");
+            await WriteProblemAsync(
+                context,
+                StatusCodes.Status500InternalServerError,
+                "internal_error",
+                "An unexpected error happened while processing the request.");
         }
     }
 
-    private static async Task WriteErrorAsync(
+    private static async Task WriteProblemAsync(
         HttpContext context,
-        HttpStatusCode statusCode,
+        int statusCode,
         string code,
-        string message)
+        string detail)
     {
         if (context.Response.HasStarted)
         {
@@ -56,10 +58,32 @@ public sealed class ExceptionHandlingMiddleware
         }
 
         context.Response.Clear();
-        context.Response.StatusCode = (int)statusCode;
-        context.Response.ContentType = "application/json";
 
-        var payload = JsonSerializer.Serialize(new ErrorResponse(code, message));
-        await context.Response.WriteAsync(payload);
+        var correlationId = CorrelationIdMiddleware.ResolveCorrelationId(context);
+        var problemDetails = new ProblemDetails
+        {
+            Type = $"https://httpstatuses.com/{statusCode}",
+            Title = GetTitle(statusCode),
+            Detail = detail,
+            Status = statusCode,
+            Instance = context.Request.Path
+        };
+        problemDetails.Extensions["code"] = code;
+        problemDetails.Extensions["traceId"] = context.TraceIdentifier;
+        problemDetails.Extensions["correlationId"] = correlationId;
+
+        context.Response.StatusCode = statusCode;
+        context.Response.ContentType = "application/problem+json";
+        await context.Response.WriteAsJsonAsync(problemDetails);
     }
+
+    private static string GetTitle(int statusCode)
+        => statusCode switch
+        {
+            StatusCodes.Status400BadRequest => "Bad Request",
+            StatusCodes.Status404NotFound => "Not Found",
+            StatusCodes.Status409Conflict => "Conflict",
+            StatusCodes.Status500InternalServerError => "Internal Server Error",
+            _ => "Error"
+        };
 }

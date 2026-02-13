@@ -1,4 +1,6 @@
+using System.Text;
 using DecorRental.Api.Middleware;
+using DecorRental.Api.Security;
 using DecorRental.Api.Validators;
 using DecorRental.Application.UseCases.CancelReservation;
 using DecorRental.Application.UseCases.CreateKit;
@@ -6,23 +8,106 @@ using DecorRental.Application.UseCases.GetKitById;
 using DecorRental.Application.UseCases.GetKits;
 using DecorRental.Application.UseCases.ReserveKit;
 using DecorRental.Domain.Repositories;
-using FluentValidation;
-using FluentValidation.AspNetCore;
 using DecorRental.Infrastructure.Persistence;
 using DecorRental.Infrastructure.Repositories;
+using FluentValidation;
+using FluentValidation.AspNetCore;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
+using Prometheus;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// DbContext
+builder.Logging.ClearProviders();
+builder.Logging.AddJsonConsole();
+
+var jwtOptions = builder.Configuration.GetSection(JwtOptions.SectionName).Get<JwtOptions>() ?? new JwtOptions();
+if (string.IsNullOrWhiteSpace(jwtOptions.SigningKey))
+{
+    throw new InvalidOperationException(
+        $"Missing '{JwtOptions.SectionName}:SigningKey' configuration. Configure JWT settings before running the API.");
+}
+
+builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection(JwtOptions.SectionName));
+
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.RequireHttpsMetadata = false;
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateIssuerSigningKey = true,
+            ValidateLifetime = true,
+            ValidIssuer = jwtOptions.Issuer,
+            ValidAudience = jwtOptions.Audience,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.SigningKey))
+        };
+        options.Events = new JwtBearerEvents
+        {
+            OnChallenge = async context =>
+            {
+                context.HandleResponse();
+
+                var correlationId = CorrelationIdMiddleware.ResolveCorrelationId(context.HttpContext);
+                var problemDetails = new ProblemDetails
+                {
+                    Type = "https://httpstatuses.com/401",
+                    Title = "Unauthorized",
+                    Detail = "A valid access token is required to access this resource.",
+                    Status = StatusCodes.Status401Unauthorized,
+                    Instance = context.HttpContext.Request.Path
+                };
+                problemDetails.Extensions["code"] = "unauthorized";
+                problemDetails.Extensions["traceId"] = context.HttpContext.TraceIdentifier;
+                problemDetails.Extensions["correlationId"] = correlationId;
+
+                context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                context.Response.ContentType = "application/problem+json";
+                await context.Response.WriteAsJsonAsync(problemDetails);
+            },
+            OnForbidden = async context =>
+            {
+                var correlationId = CorrelationIdMiddleware.ResolveCorrelationId(context.HttpContext);
+                var problemDetails = new ProblemDetails
+                {
+                    Type = "https://httpstatuses.com/403",
+                    Title = "Forbidden",
+                    Detail = "Your user does not have permission to access this resource.",
+                    Status = StatusCodes.Status403Forbidden,
+                    Instance = context.HttpContext.Request.Path
+                };
+                problemDetails.Extensions["code"] = "forbidden";
+                problemDetails.Extensions["traceId"] = context.HttpContext.TraceIdentifier;
+                problemDetails.Extensions["correlationId"] = correlationId;
+
+                context.Response.StatusCode = StatusCodes.Status403Forbidden;
+                context.Response.ContentType = "application/problem+json";
+                await context.Response.WriteAsJsonAsync(problemDetails);
+            }
+        };
+    });
+
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy(AuthorizationPolicies.ReadKits, policy =>
+        policy.RequireRole("Viewer", "Manager", "Admin"));
+
+    options.AddPolicy(AuthorizationPolicies.ManageKits, policy =>
+        policy.RequireRole("Manager", "Admin"));
+});
+
+builder.Services.AddScoped<IAuthenticationService, JwtAuthenticationService>();
+
 builder.Services.AddDbContext<DecorRentalDbContext>(options =>
     options.UseSqlite(
         builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// Repositories
 builder.Services.AddScoped<IKitRepository, EfKitRepository>();
-
-// Use cases
 builder.Services.AddScoped<CreateKitHandler>();
 builder.Services.AddScoped<GetKitByIdHandler>();
 builder.Services.AddScoped<GetKitsHandler>();
@@ -38,26 +123,66 @@ builder.Services
     {
         options.InvalidModelStateResponseFactory = context =>
         {
-            var errors = context.ModelState
-                .Values
-                .SelectMany(value => value.Errors)
-                .Select(error => error.ErrorMessage)
-                .Where(message => !string.IsNullOrWhiteSpace(message))
-                .ToArray();
+            var validationProblemDetails = new ValidationProblemDetails(context.ModelState)
+            {
+                Type = "https://httpstatuses.com/400",
+                Title = "Validation failed.",
+                Detail = "One or more request fields are invalid.",
+                Status = StatusCodes.Status400BadRequest,
+                Instance = context.HttpContext.Request.Path
+            };
 
-            var message = errors.Length > 0
-                ? string.Join(" ", errors)
-                : "Validation failed.";
+            var correlationId = CorrelationIdMiddleware.ResolveCorrelationId(context.HttpContext);
+            validationProblemDetails.Extensions["code"] = "validation_error";
+            validationProblemDetails.Extensions["traceId"] = context.HttpContext.TraceIdentifier;
+            validationProblemDetails.Extensions["correlationId"] = correlationId;
 
-            return new Microsoft.AspNetCore.Mvc.BadRequestObjectResult(
-                new DecorRental.Api.Contracts.ErrorResponse("validation_error", message));
+            return new BadRequestObjectResult(validationProblemDetails)
+            {
+                ContentTypes = { "application/problem+json" }
+            };
         };
     });
+
+builder.Services.AddProblemDetails();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(options =>
+{
+    options.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Title = "DecorRental API",
+        Version = "v1"
+    });
+
+    var bearerSecurityScheme = new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Description = "JWT Authorization header using the Bearer scheme. Example: \"Bearer {token}\"",
+        In = ParameterLocation.Header,
+        Type = SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT",
+        Reference = new OpenApiReference
+        {
+            Type = ReferenceType.SecurityScheme,
+            Id = JwtBearerDefaults.AuthenticationScheme
+        }
+    };
+
+    options.AddSecurityDefinition(JwtBearerDefaults.AuthenticationScheme, bearerSecurityScheme);
+    options.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        [bearerSecurityScheme] = []
+    });
+});
+
+builder.Services.AddHealthChecks()
+    .AddDbContextCheck<DecorRentalDbContext>("database");
 
 var app = builder.Build();
 
+app.UseMiddleware<CorrelationIdMiddleware>();
+app.UseMiddleware<RequestLoggingMiddleware>();
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 if (app.Environment.IsDevelopment())
@@ -72,8 +197,14 @@ using (var scope = app.Services.CreateScope())
     dbContext.Database.Migrate();
 }
 
+app.UseHttpMetrics();
 app.UseHttpsRedirection();
+app.UseAuthentication();
+app.UseAuthorization();
+
 app.MapControllers();
+app.MapHealthChecks("/health");
+app.MapMetrics("/metrics");
 
 app.Run();
 
