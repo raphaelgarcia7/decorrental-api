@@ -12,7 +12,9 @@ public sealed class CancelReservationHandler
         _repository = repository;
     }
 
-    public async Task HandleAsync(CancelReservationCommand command, CancellationToken cancellationToken = default)
+    public async Task<CancelReservationResult> HandleAsync(
+        CancelReservationCommand command,
+        CancellationToken cancellationToken = default)
     {
         var kit = await _repository.GetByIdAsync(command.KitId, cancellationToken)
             ?? throw new NotFoundException("Kit not found.");
@@ -23,7 +25,12 @@ public sealed class CancelReservationHandler
             throw new NotFoundException("Reservation not found.");
         }
 
-        kit.CancelReservation(command.ReservationId);
+        var reservation = kit.CancelReservation(command.ReservationId);
         await _repository.SaveAsync(kit, cancellationToken);
+
+        return new CancelReservationResult(
+            reservation.Id,
+            kit.Id,
+            reservation.Status.ToString());
     }
 }

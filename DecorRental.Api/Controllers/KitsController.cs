@@ -89,7 +89,7 @@ public class KitsController : ControllerBase
 
     [HttpPost("{id:guid}/reservations")]
     [Authorize(Policy = AuthorizationPolicies.ManageKits)]
-    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(typeof(ReserveKitResponse), StatusCodes.Status200OK)]
     public async Task<IActionResult> Reserve(Guid id, [FromBody] ReserveKitRequest request, CancellationToken cancellationToken)
     {
         var command = new ReserveKitCommand(
@@ -97,18 +97,31 @@ public class KitsController : ControllerBase
             request.StartDate,
             request.EndDate);
 
-        await _reserveHandler.HandleAsync(command, cancellationToken);
+        var result = await _reserveHandler.HandleAsync(command, cancellationToken);
+        var response = new ReserveKitResponse(
+            result.ReservationId,
+            result.KitId,
+            result.StartDate,
+            result.EndDate,
+            result.ReservationStatus,
+            "Reservation created successfully.");
 
-        return NoContent();
+        return Ok(response);
     }
 
     [HttpPost("{id:guid}/reservations/{reservationId:guid}/cancel")]
     [Authorize(Policy = AuthorizationPolicies.ManageKits)]
-    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(typeof(CancelReservationResponse), StatusCodes.Status200OK)]
     public async Task<IActionResult> Cancel(Guid id, Guid reservationId, CancellationToken cancellationToken)
     {
-        await _cancelHandler.HandleAsync(new CancelReservationCommand(id, reservationId), cancellationToken);
-        return NoContent();
+        var result = await _cancelHandler.HandleAsync(new CancelReservationCommand(id, reservationId), cancellationToken);
+        var response = new CancelReservationResponse(
+            result.ReservationId,
+            result.KitId,
+            result.ReservationStatus,
+            "Reservation cancelled successfully.");
+
+        return Ok(response);
     }
 
     private static KitSummaryResponse ToSummary(Kit kit)
