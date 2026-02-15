@@ -45,7 +45,11 @@ public sealed class KitsApiTests : IClassFixture<DecorRentalApiFactory>
             $"/api/kits/{kitId}/reservations",
             new ReserveKitRequest("2026-03-10", "2026-03-12"));
 
-        Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var reserveResponse = await response.Content.ReadFromJsonAsync<ReserveKitResponse>();
+        Assert.NotNull(reserveResponse);
+        Assert.Equal(kitId, reserveResponse.KitId);
+        Assert.Equal("Active", reserveResponse.Status);
 
         var reservationsResponse = await _httpClient.GetAsync($"/api/kits/{kitId}/reservations");
         var reservations = await reservationsResponse.Content.ReadFromJsonAsync<List<ReservationResponse>>();
@@ -137,13 +141,17 @@ public sealed class KitsApiTests : IClassFixture<DecorRentalApiFactory>
             $"/api/kits/{kitId}/reservations/{reservationId}/cancel",
             content: null);
 
-        Assert.Equal(HttpStatusCode.NoContent, cancelResponse.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, cancelResponse.StatusCode);
+        var cancelReservationResponse = await cancelResponse.Content.ReadFromJsonAsync<CancelReservationResponse>();
+        Assert.NotNull(cancelReservationResponse);
+        Assert.Equal(reservationId, cancelReservationResponse.ReservationId);
+        Assert.Equal("Cancelled", cancelReservationResponse.Status);
 
         var reserveAgainResponse = await _httpClient.PostAsJsonAsync(
             $"/api/kits/{kitId}/reservations",
             new ReserveKitRequest("2026-05-01", "2026-05-03"));
 
-        Assert.Equal(HttpStatusCode.NoContent, reserveAgainResponse.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, reserveAgainResponse.StatusCode);
     }
 
     private async Task<Guid> CreateKitAsync(string name)
@@ -189,6 +197,20 @@ public sealed class KitsApiTests : IClassFixture<DecorRentalApiFactory>
     private sealed record KitSummaryResponse(Guid Id, string Name);
 
     private sealed record ReservationResponse(Guid Id, string StartDate, string EndDate, string Status);
+
+    private sealed record ReserveKitResponse(
+        Guid ReservationId,
+        Guid KitId,
+        string StartDate,
+        string EndDate,
+        string Status,
+        string Message);
+
+    private sealed record CancelReservationResponse(
+        Guid ReservationId,
+        Guid KitId,
+        string Status,
+        string Message);
 
     private sealed record PagedResponse<TItem>(
         IReadOnlyList<TItem> Items,

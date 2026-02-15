@@ -23,10 +23,12 @@ public class CancelReservationTests
 
         var handler = new CancelReservationHandler(repository);
 
-        await handler.HandleAsync(new CancelReservationCommand(kit.Id, reservationId));
+        var result = await handler.HandleAsync(new CancelReservationCommand(kit.Id, reservationId));
 
         var cancelledReservation = kit.Reservations.Single(reservation => reservation.Id == reservationId);
         Assert.Equal(ReservationStatus.Cancelled, cancelledReservation.Status);
+        Assert.Equal(reservationId, result.ReservationId);
+        Assert.Equal("Cancelled", result.ReservationStatus);
     }
 
     [Fact]

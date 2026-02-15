@@ -23,9 +23,11 @@ public class ReserveKitTests
 
         var handler = new ReserveKitHandler(repository);
 
-        await handler.HandleAsync(command);
+        var result = await handler.HandleAsync(command);
 
         Assert.Single(kit.Reservations);
+        Assert.Equal(kit.Id, result.KitId);
+        Assert.Equal("Active", result.ReservationStatus);
     }
 
     [Fact]

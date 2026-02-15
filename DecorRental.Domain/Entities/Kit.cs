@@ -20,7 +20,7 @@ public class Kit
         Name = name;
     }
 
-    public void Reserve(DateRange period)
+    public Reservation Reserve(DateRange period)
     {
         var hasConflict = _reservations.Any(reservation =>
             reservation.Status == ReservationStatus.Active &&
@@ -29,16 +29,19 @@ public class Kit
         if (hasConflict)
             throw new ConflictException("Kit is already reserved for this period.");
 
-        _reservations.Add(new Reservation(Id, period));
+        var reservation = new Reservation(Id, period);
+        _reservations.Add(reservation);
+        return reservation;
     }
 
-    public void CancelReservation(Guid reservationId)
+    public Reservation CancelReservation(Guid reservationId)
     {
         var reservation = _reservations.FirstOrDefault(currentReservation => currentReservation.Id == reservationId);
         if (reservation is null)
             throw new DomainException("Reservation not found for this kit.");
 
         reservation.Cancel();
+        return reservation;
     }
 
     private readonly List<Reservation> _reservations = new();
