@@ -1,0 +1,24 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: decorrental-api
+    ports:
+      - "8080:8080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__DefaultConnection: Data Source=/app/data/decorental.db
+      Jwt__Issuer: DecorRental.Api
+      Jwt__Audience: DecorRental.Client
+      Jwt__SigningKey: DecorRental-Local-Testing-Signing-Key-2026-Long
+      Jwt__TokenExpirationMinutes: 60
+      Jwt__Users__0__Username: manager
+      Jwt__Users__0__Password: manager123
+      Jwt__Users__0__Role: Manager
+    volumes:
+      - decorrental_data:/app/data
+
+volumes:
+  decorrental_data:

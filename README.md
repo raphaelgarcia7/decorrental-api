@@ -46,6 +46,20 @@ dotnet run --project .\DecorRental.Api
 
 A API aplica migrations no startup.
 
+## Como executar com Docker
+
+```bash
+docker compose up --build -d
+```
+
+A API ficará disponível em `http://localhost:8080`.
+
+Para encerrar:
+
+```bash
+docker compose down
+```
+
 ## Autenticação (JWT)
 
 As credenciais e chave JWT **não ficam versionadas**.
