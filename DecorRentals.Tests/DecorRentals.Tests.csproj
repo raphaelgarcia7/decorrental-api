@@ -17,7 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\DecorRental.Api\DecorRental.Api.csproj" />
+    <ProjectReference Include="..\DecorRental.Api\DecorRental.API.csproj" />
     <ProjectReference Include="..\DecorRental.Domain\DecorRental.Domain.csproj" />
     <ProjectReference Include="..\DecorRental.Application\DecorRental.Application.csproj" />
   </ItemGroup>
