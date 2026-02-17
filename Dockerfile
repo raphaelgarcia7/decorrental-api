@@ -20,4 +20,4 @@ EXPOSE 8080
 
 COPY --from=build /app/publish .
 
-ENTRYPOINT ["dotnet", "DecorRental.Api.dll"]
+ENTRYPOINT ["dotnet", "DecorRental.API.dll"]
