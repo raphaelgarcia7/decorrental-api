@@ -28,6 +28,7 @@ Demonstrar arquitetura em camadas (`Domain`, `Application`, `Infrastructure`, `A
 - JWT Bearer Authentication
 - FluentValidation
 - Prometheus metrics + Health Checks
+- Docker + Docker Compose
 - xUnit (unitário + integração)
 
 ## Arquitetura
@@ -36,8 +37,11 @@ Demonstrar arquitetura em camadas (`Domain`, `Application`, `Infrastructure`, `A
 - `DecorRental.Application`: casos de uso e orquestração.
 - `DecorRental.Infrastructure`: persistência EF Core.
 - `DecorRental.Api`: controllers, autenticação/autorização, validação, middleware e contrato HTTP.
+Diagrama: `docs/architecture.md`.
 
 ## Como executar
+
+### Local
 
 ```bash
 dotnet build
@@ -46,10 +50,30 @@ dotnet run --project .\DecorRental.Api
 
 A API aplica migrations no startup.
 
+### Docker
+
+1. Crie um `.env` com base no `.env.example`.
+2. Rode:
+
+```bash
+docker compose up --build -d
+```
+
+API disponível em `http://localhost:8080`.
+
+Para encerrar:
+
+```bash
+docker compose down
+```
+
 ## Autenticação (JWT)
 
 As credenciais e chave JWT **não ficam versionadas**.
-Configure com User Secrets:
+Você pode configurar de duas formas:
+
+- Docker: preencha o arquivo `.env`.
+- Local: use User Secrets.
 
 ```bash
 dotnet user-secrets --project .\DecorRental.Api set "Jwt:SigningKey" "sua-chave-com-pelo-menos-32-caracteres"
@@ -79,6 +103,7 @@ Erros retornam `application/problem+json` com `ProblemDetails` e extensões:
 - Logs estruturados em JSON.
 - Health check: `GET /health`.
 - Metrics em formato Prometheus: `GET /metrics`.
+Serve para verificar se a API está saudável e ter dados básicos de execução.
 
 ## Endpoints
 
