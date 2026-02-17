@@ -2,12 +2,14 @@ using System.Text;
 using DecorRental.Api.Middleware;
 using DecorRental.Api.Security;
 using DecorRental.Api.Validators;
+using DecorRental.Application.Messaging;
 using DecorRental.Application.UseCases.CancelReservation;
 using DecorRental.Application.UseCases.CreateKit;
 using DecorRental.Application.UseCases.GetKitById;
 using DecorRental.Application.UseCases.GetKits;
 using DecorRental.Application.UseCases.ReserveKit;
 using DecorRental.Domain.Repositories;
+using DecorRental.Infrastructure.Messaging;
 using DecorRental.Infrastructure.Persistence;
 using DecorRental.Infrastructure.Repositories;
 using FluentValidation;
@@ -25,6 +27,7 @@ builder.Logging.ClearProviders();
 builder.Logging.AddJsonConsole();
 
 builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection(JwtOptions.SectionName));
+builder.Services.Configure<RabbitMqOptions>(builder.Configuration.GetSection(RabbitMqOptions.SectionName));
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -98,6 +101,7 @@ builder.Services.AddAuthorization(options =>
 });
 
 builder.Services.AddScoped<IAuthenticationService, JwtAuthenticationService>();
+builder.Services.AddSingleton<IMessageBus, RabbitMqMessageBus>();
 
 builder.Services.AddDbContext<DecorRentalDbContext>(options =>
     options.UseSqlite(
@@ -172,8 +176,17 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
-builder.Services.AddHealthChecks()
+var rabbitMqOptions = builder.Configuration
+    .GetSection(RabbitMqOptions.SectionName)
+    .Get<RabbitMqOptions>() ?? new RabbitMqOptions();
+
+var healthChecks = builder.Services.AddHealthChecks()
     .AddDbContextCheck<DecorRentalDbContext>("database");
+
+if (rabbitMqOptions.Enabled)
+{
+    healthChecks.AddRabbitMQ(rabbitMqOptions.BuildConnectionString(), name: "rabbitmq");
+}
 
 var app = builder.Build();
 

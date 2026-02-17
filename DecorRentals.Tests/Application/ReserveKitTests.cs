@@ -1,4 +1,5 @@
-﻿using DecorRental.Application.UseCases.ReserveKit;
+using DecorRental.Application.IntegrationEvents;
+using DecorRental.Application.UseCases.ReserveKit;
 using DecorRental.Domain.Entities;
 using DecorRental.Domain.Exceptions;
 using DecorRental.Tests.Application.Fakes;
@@ -14,6 +15,7 @@ public class ReserveKitTests
         var kit = new Kit("Basic Kit");
 
         var repository = new FakeKitRepository();
+        var messageBus = new FakeMessageBus();
         await repository.AddAsync(kit);
 
         var command = new ReserveKitCommand(
@@ -21,13 +23,14 @@ public class ReserveKitTests
             new DateOnly(2026, 1, 10),
             new DateOnly(2026, 1, 12));
 
-        var handler = new ReserveKitHandler(repository);
+        var handler = new ReserveKitHandler(repository, messageBus);
 
         var result = await handler.HandleAsync(command);
 
         Assert.Single(kit.Reservations);
         Assert.Equal(kit.Id, result.KitId);
         Assert.Equal("Active", result.ReservationStatus);
+        Assert.Single(messageBus.PublishedEvents.OfType<ReservationCreatedEvent>());
     }
 
     [Fact]
@@ -36,9 +39,10 @@ public class ReserveKitTests
         var kit = new Kit("Basic Kit");
 
         var repository = new FakeKitRepository();
+        var messageBus = new FakeMessageBus();
         await repository.AddAsync(kit);
 
-        var handler = new ReserveKitHandler(repository);
+        var handler = new ReserveKitHandler(repository, messageBus);
 
         await handler.HandleAsync(new ReserveKitCommand(
             kit.Id,

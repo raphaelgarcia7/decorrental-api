@@ -1,4 +1,6 @@
 using DecorRental.Application.Exceptions;
+using DecorRental.Application.IntegrationEvents;
+using DecorRental.Application.Messaging;
 using DecorRental.Domain.Repositories;
 
 namespace DecorRental.Application.UseCases.CancelReservation;
@@ -6,10 +8,12 @@ namespace DecorRental.Application.UseCases.CancelReservation;
 public sealed class CancelReservationHandler
 {
     private readonly IKitRepository _repository;
+    private readonly IMessageBus _messageBus;
 
-    public CancelReservationHandler(IKitRepository repository)
+    public CancelReservationHandler(IKitRepository repository, IMessageBus messageBus)
     {
         _repository = repository;
+        _messageBus = messageBus;
     }
 
     public async Task<CancelReservationResult> HandleAsync(
@@ -27,6 +31,13 @@ public sealed class CancelReservationHandler
 
         var reservation = kit.CancelReservation(command.ReservationId);
         await _repository.SaveAsync(kit, cancellationToken);
+
+        var integrationEvent = new ReservationCancelledEvent(
+            kit.Id,
+            reservation.Id,
+            reservation.Status.ToString());
+
+        await _messageBus.PublishAsync(integrationEvent, cancellationToken);
 
         return new CancelReservationResult(
             reservation.Id,

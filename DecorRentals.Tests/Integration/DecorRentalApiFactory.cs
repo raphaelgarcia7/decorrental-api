@@ -22,6 +22,7 @@ public sealed class DecorRentalApiFactory : WebApplicationFactory<Program>
                 ["Jwt:Audience"] = "DecorRental.Tests",
                 ["Jwt:SigningKey"] = "DecorRental-Tests-Only-Signing-Key-Should-Be-Long",
                 ["Jwt:TokenExpirationMinutes"] = "60",
+                ["RabbitMq:Enabled"] = "false",
                 ["Jwt:Users:0:Username"] = "viewer",
                 ["Jwt:Users:0:Password"] = "viewer123",
                 ["Jwt:Users:0:Role"] = "Viewer",

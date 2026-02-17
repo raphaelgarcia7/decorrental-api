@@ -1,4 +1,6 @@
 using DecorRental.Application.Exceptions;
+using DecorRental.Application.IntegrationEvents;
+using DecorRental.Application.Messaging;
 using DecorRental.Domain.Entities;
 using DecorRental.Domain.Repositories;
 using DecorRental.Domain.ValueObjects;
@@ -9,10 +11,12 @@ public class ReserveKitHandler
 {
 
     private readonly IKitRepository _repository;
+    private readonly IMessageBus _messageBus;
 
-    public ReserveKitHandler(IKitRepository repository)
+    public ReserveKitHandler(IKitRepository repository, IMessageBus messageBus)
     {
         _repository = repository;
+        _messageBus = messageBus;
     }
 
     public async Task<ReserveKitResult> HandleAsync(
@@ -29,6 +33,15 @@ public class ReserveKitHandler
         var reservation = kit.Reserve(period);
 
         await _repository.SaveAsync(kit, cancellationToken);
+
+        var integrationEvent = new ReservationCreatedEvent(
+            kit.Id,
+            reservation.Id,
+            reservation.Period.Start,
+            reservation.Period.End,
+            reservation.Status.ToString());
+
+        await _messageBus.PublishAsync(integrationEvent, cancellationToken);
 
         return new ReserveKitResult(
             reservation.Id,

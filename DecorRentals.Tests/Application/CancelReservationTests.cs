@@ -1,3 +1,4 @@
+using DecorRental.Application.IntegrationEvents;
 using DecorRental.Application.Exceptions;
 using DecorRental.Application.UseCases.CancelReservation;
 using DecorRental.Domain.Entities;
@@ -19,9 +20,10 @@ public class CancelReservationTests
         var reservationId = kit.Reservations.Single().Id;
 
         var repository = new FakeKitRepository();
+        var messageBus = new FakeMessageBus();
         await repository.AddAsync(kit);
 
-        var handler = new CancelReservationHandler(repository);
+        var handler = new CancelReservationHandler(repository, messageBus);
 
         var result = await handler.HandleAsync(new CancelReservationCommand(kit.Id, reservationId));
 
@@ -29,6 +31,7 @@ public class CancelReservationTests
         Assert.Equal(ReservationStatus.Cancelled, cancelledReservation.Status);
         Assert.Equal(reservationId, result.ReservationId);
         Assert.Equal("Cancelled", result.ReservationStatus);
+        Assert.Single(messageBus.PublishedEvents.OfType<ReservationCancelledEvent>());
     }
 
     [Fact]
@@ -37,9 +40,10 @@ public class CancelReservationTests
         var kit = new Kit("Basic Kit");
 
         var repository = new FakeKitRepository();
+        var messageBus = new FakeMessageBus();
         await repository.AddAsync(kit);
 
-        var handler = new CancelReservationHandler(repository);
+        var handler = new CancelReservationHandler(repository, messageBus);
 
         await Assert.ThrowsAsync<NotFoundException>(() =>
             handler.HandleAsync(new CancelReservationCommand(kit.Id, Guid.NewGuid())));
