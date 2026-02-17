@@ -73,7 +73,8 @@
 - Chave de assinatura e credenciais fora do repositório (User Secrets/variáveis de ambiente).
 
 **Motivo**
-- Cobrir cenário real de controle de acesso em API de portfólio.
+- Cobrir cenário real de controle de acesso e evitar endpoints abertos em uma API pública.
+- As credenciais ficam simples por ser demo, mas o fluxo é o mesmo de um sistema real.
 
 **Trade-off**
 - Configuração adicional e gestão de credenciais de ambiente.
@@ -95,7 +96,8 @@
 - Correlation id por request, logs JSON estruturados, `health` e `metrics`.
 
 **Motivo**
-- Facilitar troubleshooting e monitoração mínima em ambiente real.
+- Facilitar troubleshooting quando algo dá errado e ter um mínimo de visão da saúde da API.
+- Mesmo em projeto pequeno, isso ajuda a simular rotina de suporte.
 
 **Trade-off**
 - Mais elementos de infraestrutura para configurar em deploy.

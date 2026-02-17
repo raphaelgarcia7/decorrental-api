@@ -102,6 +102,7 @@ Erros retornam `application/problem+json` com `ProblemDetails` e extensões:
 - Logs estruturados em JSON.
 - Health check: `GET /health`.
 - Metrics em formato Prometheus: `GET /metrics`.
+Serve para verificar se a API está saudável e ter dados básicos de execução.
 
 ## Endpoints
 
