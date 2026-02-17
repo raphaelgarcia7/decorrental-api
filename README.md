@@ -4,7 +4,6 @@
   <img width="360" alt="DecorRental" src="https://github.com/user-attachments/assets/9bcd611e-183a-44c9-bf4a-845d98fb97c4" />
 </p>
 API para gestão de kits de decoração e reservas por período.
-Projeto em evolução contínua.
 
 ## Contexto real
 
@@ -41,6 +40,8 @@ Demonstrar arquitetura em camadas (`Domain`, `Application`, `Infrastructure`, `A
 
 ## Como executar
 
+### Local
+
 ```bash
 dotnet build
 dotnet run --project .\DecorRental.Api
@@ -48,13 +49,16 @@ dotnet run --project .\DecorRental.Api
 
 A API aplica migrations no startup.
 
-## Como executar com Docker
+### Docker
+
+1. Crie um `.env` com base no `.env.example`.
+2. Rode:
 
 ```bash
 docker compose up --build -d
 ```
 
-A API ficará disponível em `http://localhost:8080`.
+API disponível em `http://localhost:8080`.
 
 Para encerrar:
 
@@ -65,7 +69,10 @@ docker compose down
 ## Autenticação (JWT)
 
 As credenciais e chave JWT **não ficam versionadas**.
-Configure com User Secrets:
+Você pode configurar de duas formas:
+
+- Docker: preencha o arquivo `.env`.
+- Local: use User Secrets.
 
 ```bash
 dotnet user-secrets --project .\DecorRental.Api set "Jwt:SigningKey" "sua-chave-com-pelo-menos-32-caracteres"

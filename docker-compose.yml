@@ -10,13 +10,13 @@ services:
       ASPNETCORE_ENVIRONMENT: Production
       ASPNETCORE_URLS: http://+:8080
       ConnectionStrings__DefaultConnection: Data Source=/app/data/decorental.db
-      Jwt__Issuer: DecorRental.Api
-      Jwt__Audience: DecorRental.Client
-      Jwt__SigningKey: DecorRental-Local-Testing-Signing-Key-2026-Long
-      Jwt__TokenExpirationMinutes: 60
-      Jwt__Users__0__Username: manager
-      Jwt__Users__0__Password: manager123
-      Jwt__Users__0__Role: Manager
+      Jwt__Issuer: ${JWT_ISSUER}
+      Jwt__Audience: ${JWT_AUDIENCE}
+      Jwt__SigningKey: ${JWT_SIGNING_KEY}
+      Jwt__TokenExpirationMinutes: ${JWT_TOKEN_EXPIRATION_MINUTES}
+      Jwt__Users__0__Username: ${JWT_USER_USERNAME}
+      Jwt__Users__0__Password: ${JWT_USER_PASSWORD}
+      Jwt__Users__0__Role: ${JWT_USER_ROLE}
     volumes:
       - decorrental_data:/app/data
 
