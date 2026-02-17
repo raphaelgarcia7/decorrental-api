@@ -29,6 +29,7 @@ Demonstrar arquitetura em camadas (`Domain`, `Application`, `Infrastructure`, `A
 - JWT Bearer Authentication
 - FluentValidation
 - Prometheus metrics + Health Checks
+- Docker + Docker Compose
 - xUnit (unitário + integração)
 
 ## Arquitetura
