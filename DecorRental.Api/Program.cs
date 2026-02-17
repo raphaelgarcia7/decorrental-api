@@ -176,17 +176,9 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
-var rabbitMqOptions = builder.Configuration
-    .GetSection(RabbitMqOptions.SectionName)
-    .Get<RabbitMqOptions>() ?? new RabbitMqOptions();
-
-var healthChecks = builder.Services.AddHealthChecks()
-    .AddDbContextCheck<DecorRentalDbContext>("database");
-
-if (rabbitMqOptions.Enabled)
-{
-    healthChecks.AddRabbitMQ(rabbitMqOptions.BuildConnectionString(), name: "rabbitmq");
-}
+builder.Services.AddHealthChecks()
+    .AddDbContextCheck<DecorRentalDbContext>("database")
+    .AddCheck<RabbitMqHealthCheck>("rabbitmq");
 
 var app = builder.Build();
 
