@@ -13,7 +13,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DecorRental.Infrastructure"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DecorRentals.Tests", "DecorRentals.Tests\DecorRentals.Tests.csproj", "{81229466-887A-4049-8F76-A22FA19C9FD4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DecorRental.Api", "DecorRental.Api\DecorRental.Api.csproj", "{D4395ECA-B5FA-433C-AA1F-147EBDAFC19F}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DecorRental.Api", "DecorRental.Api\DecorRental.API.csproj", "{D4395ECA-B5FA-433C-AA1F-147EBDAFC19F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
