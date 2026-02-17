@@ -37,6 +37,7 @@ Demonstrar arquitetura em camadas (`Domain`, `Application`, `Infrastructure`, `A
 - `DecorRental.Application`: casos de uso e orquestração.
 - `DecorRental.Infrastructure`: persistência EF Core.
 - `DecorRental.Api`: controllers, autenticação/autorização, validação, middleware e contrato HTTP.
+Diagrama: `docs/architecture.md`.
 
 ## Como executar
 
