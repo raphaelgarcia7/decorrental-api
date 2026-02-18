@@ -6,6 +6,8 @@ services:
     container_name: decorrental-api
     ports:
       - "8080:8080"
+    depends_on:
+      - rabbitmq
     environment:
       ASPNETCORE_ENVIRONMENT: Production
       ASPNETCORE_URLS: http://+:8080
@@ -17,8 +19,28 @@ services:
       Jwt__Users__0__Username: ${JWT_USER_USERNAME}
       Jwt__Users__0__Password: ${JWT_USER_PASSWORD}
       Jwt__Users__0__Role: ${JWT_USER_ROLE}
+      RabbitMq__Enabled: ${RABBITMQ_ENABLED}
+      RabbitMq__HostName: ${RABBITMQ_HOST}
+      RabbitMq__Port: ${RABBITMQ_PORT}
+      RabbitMq__UserName: ${RABBITMQ_USER}
+      RabbitMq__Password: ${RABBITMQ_PASSWORD}
+      RabbitMq__VirtualHost: ${RABBITMQ_VHOST}
+      RabbitMq__ExchangeName: ${RABBITMQ_EXCHANGE}
     volumes:
       - decorrental_data:/app/data
 
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: decorrental-rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+
 volumes:
   decorrental_data:
+  rabbitmq_data:

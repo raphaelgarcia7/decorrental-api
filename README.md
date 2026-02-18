@@ -28,6 +28,7 @@ Demonstrar arquitetura em camadas (`Domain`, `Application`, `Infrastructure`, `A
 - JWT Bearer Authentication
 - FluentValidation
 - Prometheus metrics + Health Checks
+- RabbitMQ (eventos de integração)
 - Docker + Docker Compose
 - xUnit (unitário + integração)
 
@@ -60,6 +61,7 @@ docker compose up --build -d
 ```
 
 API disponível em `http://localhost:8080`.
+RabbitMQ Management em `http://localhost:15672` (usuário e senha do `.env`).
 
 Para encerrar:
 
@@ -104,6 +106,12 @@ Erros retornam `application/problem+json` com `ProblemDetails` e extensões:
 - Health check: `GET /health`.
 - Metrics em formato Prometheus: `GET /metrics`.
 Serve para verificar se a API está saudável e ter dados básicos de execução.
+
+## Mensageria (RabbitMQ)
+
+Eventos publicados:
+- `reservation.created`
+- `reservation.cancelled`
 
 ## Endpoints
 

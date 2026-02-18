@@ -134,3 +134,14 @@
 
 **Trade-off**
 - Ainda não inclui quality gates avançados (coverage mínima, SAST).
+
+## 13) Mensageria com RabbitMQ
+
+**Decisão**
+- Publicar eventos de integração (`reservation.created`, `reservation.cancelled`).
+
+**Motivo**
+- Demonstrar desacoplamento e permitir processamento assíncrono fora do request principal.
+
+**Trade-off**
+- Mais infraestrutura local para rodar e monitorar.
