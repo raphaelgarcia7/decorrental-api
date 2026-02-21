@@ -3,14 +3,13 @@
 <p align="center">
   <img width="360" alt="DecorRental" src="https://github.com/user-attachments/assets/9bcd611e-183a-44c9-bf4a-845d98fb97c4" />
 </p>
-API para gestão de kits de decoração e reservas por período.
+
+
 
 ## Contexto real
 
-Este projeto nasceu para resolver um problema real de uma empresa familiar, do ramo de aluguel de festas.
-Antes, o controle de kits e períodos de reserva era manual, aumentando risco de conflito de agenda e retrabalho.
-A API centraliza essa operação com regras de negócio claras e rastreáveis. O intuito é seguir evoluindo a API
-com mais funcionalidades que irão agregar para esse negócio, por isso já temos a arquitetura preparada para essa evolução.
+API construída para ser a base de um sistema maior de gestão de locação de festas.
+O projeto começou resolvendo o controle de reservas e conflitos de agenda em uma empresa familiar, mas foi estruturado desde o início para receber novas features (financeiro, relatórios, dashboard, integrações externas).
 
 ## Objetivo
 
