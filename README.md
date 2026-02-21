@@ -4,8 +4,6 @@
   <img width="360" alt="DecorRental" src="https://github.com/user-attachments/assets/9bcd611e-183a-44c9-bf4a-845d98fb97c4" />
 </p>
 
-
-
 ## Contexto real
 
 API construída para ser a base de um sistema maior de gestão de locação de festas.
@@ -41,6 +39,15 @@ Demonstrar arquitetura em camadas (`Domain`, `Application`, `Infrastructure`, `A
 Diagrama: `docs/architecture.md`.
 
 ## Como executar
+
+## Demo (Railway)
+
+Base URL:
+```
+https://decorrental-api-production.up.railway.app
+```
+
+Pode levar alguns segundos na primeira requisição.
 
 ### Local
 
@@ -89,6 +96,42 @@ dotnet user-secrets --project .\DecorRental.Api set "Jwt:Users:1:Role" "Manager"
 
 1. Gere token em `POST /api/auth/token`.
 2. Envie `Authorization: Bearer {token}` nas rotas protegidas.
+
+## Requisições rápidas (demo ou local)
+
+1. Health:
+```bash
+curl https://decorrental-api-production.up.railway.app/health
+```
+
+2. Token:
+```bash
+curl -X POST https://decorrental-api-production.up.railway.app/api/auth/token \
+  -H "Content-Type: application/json" \
+  -d "{\"username\":\"manager\",\"password\":\"<SUA_SENHA>\"}"
+```
+
+3. Criar kit:
+```bash
+curl -X POST https://decorrental-api-production.up.railway.app/api/kits \
+  -H "Authorization: Bearer <TOKEN>" \
+  -H "Content-Type: application/json" \
+  -d "{\"name\":\"Basic Kit\"}"
+```
+
+4. Reservar kit:
+```bash
+curl -X POST https://decorrental-api-production.up.railway.app/api/kits/<KIT_ID>/reservations \
+  -H "Authorization: Bearer <TOKEN>" \
+  -H "Content-Type: application/json" \
+  -d "{\"startDate\":\"2026-03-01\",\"endDate\":\"2026-03-03\"}"
+```
+
+5. Cancelar reserva:
+```bash
+curl -X POST https://decorrental-api-production.up.railway.app/api/kits/<KIT_ID>/reservations/<RESERVATION_ID>/cancel \
+  -H "Authorization: Bearer <TOKEN>"
+```
 
 ## Contrato de erro
 
