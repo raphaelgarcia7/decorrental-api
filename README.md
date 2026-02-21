@@ -6,7 +6,8 @@
 
 ## Contexto real
 
-API construída para ser a base de um sistema maior de gestão de locação de festas. O projeto começou resolvendo o controle de reservas e conflitos de agenda em uma empresa familiar, mas foi estruturado desde o início para receber novas features (financeiro, relatórios, dashboard, integrações externas).
+API construída para ser a base de um sistema maior de gestão de locação de festas.
+O projeto começou resolvendo o controle de reservas e conflitos de agenda em uma empresa familiar, mas foi estruturado desde o início para receber novas features (financeiro, relatórios, dashboard, integrações externas).
 
 ## Objetivo
 
