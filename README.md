@@ -7,7 +7,7 @@ API para gestão de kits de decoração e reservas por período.
 
 ## Contexto real
 
-Este projeto nasceu para resolver um problema real da empresa de decoração “pegue e monte” da minha mãe.
+Este projeto nasceu para resolver um problema real de uma empresa familiar, do ramo de aluguel de festas.
 Antes, o controle de kits e períodos de reserva era manual, aumentando risco de conflito de agenda e retrabalho.
 A API centraliza essa operação com regras de negócio claras e rastreáveis.
 
