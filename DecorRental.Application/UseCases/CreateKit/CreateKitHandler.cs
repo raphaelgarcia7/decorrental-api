@@ -5,18 +5,18 @@ namespace DecorRental.Application.UseCases.CreateKit;
 
 public sealed class CreateKitHandler
 {
-    private readonly IKitRepository _repository;
+    private readonly IKitThemeRepository _repository;
 
-    public CreateKitHandler(IKitRepository repository)
+    public CreateKitHandler(IKitThemeRepository repository)
     {
         _repository = repository;
     }
 
     public async Task<Guid> HandleAsync(CreateKitCommand command, CancellationToken cancellationToken = default)
     {
-        var kit = new Kit(command.Name);
-        await _repository.AddAsync(kit, cancellationToken);
+        var kitTheme = new KitTheme(command.Name);
+        await _repository.AddAsync(kitTheme, cancellationToken);
 
-        return kit.Id;
+        return kitTheme.Id;
     }
 }

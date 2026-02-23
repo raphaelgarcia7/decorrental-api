@@ -1,3 +1,3 @@
 namespace DecorRental.Application.UseCases.GetKitById;
 
-public record GetKitByIdQuery(Guid KitId);
+public record GetKitByIdQuery(Guid KitThemeId);

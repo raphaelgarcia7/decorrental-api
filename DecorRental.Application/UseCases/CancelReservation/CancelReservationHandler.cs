@@ -7,10 +7,10 @@ namespace DecorRental.Application.UseCases.CancelReservation;
 
 public sealed class CancelReservationHandler
 {
-    private readonly IKitRepository _repository;
+    private readonly IKitThemeRepository _repository;
     private readonly IMessageBus _messageBus;
 
-    public CancelReservationHandler(IKitRepository repository, IMessageBus messageBus)
+    public CancelReservationHandler(IKitThemeRepository repository, IMessageBus messageBus)
     {
         _repository = repository;
         _messageBus = messageBus;
@@ -20,20 +20,21 @@ public sealed class CancelReservationHandler
         CancelReservationCommand command,
         CancellationToken cancellationToken = default)
     {
-        var kit = await _repository.GetByIdAsync(command.KitId, cancellationToken)
-            ?? throw new NotFoundException("Kit not found.");
+        var kitTheme = await _repository.GetByIdAsync(command.KitThemeId, cancellationToken)
+            ?? throw new NotFoundException("Kit theme not found.");
 
-        var hasReservation = kit.Reservations.Any(reservation => reservation.Id == command.ReservationId);
+        var hasReservation = kitTheme.Reservations.Any(reservation => reservation.Id == command.ReservationId);
         if (!hasReservation)
         {
             throw new NotFoundException("Reservation not found.");
         }
 
-        var reservation = kit.CancelReservation(command.ReservationId);
-        await _repository.SaveAsync(kit, cancellationToken);
+        var reservation = kitTheme.CancelReservation(command.ReservationId);
+        await _repository.SaveAsync(kitTheme, cancellationToken);
 
         var integrationEvent = new ReservationCancelledEvent(
-            kit.Id,
+            kitTheme.Id,
+            reservation.KitCategoryId,
             reservation.Id,
             reservation.Status.ToString());
 
@@ -41,7 +42,7 @@ public sealed class CancelReservationHandler
 
         return new CancelReservationResult(
             reservation.Id,
-            kit.Id,
+            kitTheme.Id,
             reservation.Status.ToString());
     }
 }

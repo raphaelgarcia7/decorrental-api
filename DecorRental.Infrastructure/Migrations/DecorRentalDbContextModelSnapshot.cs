@@ -15,9 +15,34 @@ namespace DecorRental.Infrastructure.Migrations
         protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder.HasAnnotation("ProductVersion", "9.0.12");
+            modelBuilder.HasAnnotation("ProductVersion", "9.0.0");
 
-            modelBuilder.Entity("DecorRental.Domain.Entities.Kit", b =>
+            modelBuilder.Entity("DecorRental.Domain.Entities.CategoryItem", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("ItemTypeId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("KitCategoryId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ItemTypeId");
+
+                    b.HasIndex("KitCategoryId", "ItemTypeId")
+                        .IsUnique();
+
+                    b.ToTable("CategoryItems", (string)null);
+                });
+
+            modelBuilder.Entity("DecorRental.Domain.Entities.ItemType", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -25,11 +50,50 @@ namespace DecorRental.Infrastructure.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("TotalStock")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.ToTable("ItemTypes", (string)null);
+                });
+
+            modelBuilder.Entity("DecorRental.Domain.Entities.KitCategory", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(120)
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
 
-                    b.ToTable("Kits");
+                    b.ToTable("KitCategories", (string)null);
+                });
+
+            modelBuilder.Entity("DecorRental.Domain.Entities.KitTheme", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("KitThemes", (string)null);
                 });
 
             modelBuilder.Entity("DecorRental.Domain.Entities.Reservation", b =>
@@ -38,7 +102,10 @@ namespace DecorRental.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("TEXT");
 
-                    b.Property<Guid>("KitId")
+                    b.Property<Guid>("KitCategoryId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("KitThemeId")
                         .HasColumnType("TEXT");
 
                     b.Property<int>("Status")
@@ -46,16 +113,65 @@ namespace DecorRental.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("KitId");
+                    b.HasIndex("KitCategoryId");
 
-                    b.ToTable("Reservations");
+                    b.HasIndex("KitThemeId");
+
+                    b.HasIndex("Status", "KitThemeId");
+
+                    b.ToTable("Reservations", (string)null);
+                });
+
+            modelBuilder.Entity("DecorRental.Domain.Entities.ReservationItem", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("ItemTypeId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<Guid>("ReservationId")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ItemTypeId");
+
+                    b.HasIndex("ReservationId");
+
+                    b.ToTable("ReservationItems", (string)null);
+                });
+
+            modelBuilder.Entity("DecorRental.Domain.Entities.CategoryItem", b =>
+                {
+                    b.HasOne("DecorRental.Domain.Entities.ItemType", null)
+                        .WithMany()
+                        .HasForeignKey("ItemTypeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("DecorRental.Domain.Entities.KitCategory", null)
+                        .WithMany("Items")
+                        .HasForeignKey("KitCategoryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("DecorRental.Domain.Entities.Reservation", b =>
                 {
-                    b.HasOne("DecorRental.Domain.Entities.Kit", null)
+                    b.HasOne("DecorRental.Domain.Entities.KitCategory", null)
+                        .WithMany()
+                        .HasForeignKey("KitCategoryId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("DecorRental.Domain.Entities.KitTheme", null)
                         .WithMany("Reservations")
-                        .HasForeignKey("KitId")
+                        .HasForeignKey("KitThemeId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -84,9 +200,34 @@ namespace DecorRental.Infrastructure.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("DecorRental.Domain.Entities.Kit", b =>
+            modelBuilder.Entity("DecorRental.Domain.Entities.ReservationItem", b =>
+                {
+                    b.HasOne("DecorRental.Domain.Entities.ItemType", null)
+                        .WithMany()
+                        .HasForeignKey("ItemTypeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("DecorRental.Domain.Entities.Reservation", null)
+                        .WithMany("Items")
+                        .HasForeignKey("ReservationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("DecorRental.Domain.Entities.KitCategory", b =>
+                {
+                    b.Navigation("Items");
+                });
+
+            modelBuilder.Entity("DecorRental.Domain.Entities.KitTheme", b =>
                 {
                     b.Navigation("Reservations");
+                });
+
+            modelBuilder.Entity("DecorRental.Domain.Entities.Reservation", b =>
+                {
+                    b.Navigation("Items");
                 });
 #pragma warning restore 612, 618
         }

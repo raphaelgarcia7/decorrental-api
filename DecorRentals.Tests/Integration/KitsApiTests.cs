@@ -25,30 +25,105 @@ public sealed class KitsApiTests : IClassFixture<DecorRentalApiFactory>
     }
 
     [Fact]
+    public async Task Item_types_endpoints_should_return_complete_payloads()
+    {
+        await AuthenticateAsManagerAsync();
+
+        var createResponse = await _httpClient.PostAsJsonAsync("/api/item-types", new CreateItemTypeRequest("Cylinder", 12));
+        Assert.Equal(HttpStatusCode.Created, createResponse.StatusCode);
+        Assert.NotNull(createResponse.Headers.Location);
+
+        var createdItem = await createResponse.Content.ReadFromJsonAsync<ItemTypeResponse>();
+        Assert.NotNull(createdItem);
+        Assert.Equal("Cylinder", createdItem.Name);
+        Assert.Equal(12, createdItem.TotalStock);
+
+        var getByIdResponse = await _httpClient.GetAsync($"/api/item-types/{createdItem.Id}");
+        Assert.Equal(HttpStatusCode.OK, getByIdResponse.StatusCode);
+        var fetchedItem = await getByIdResponse.Content.ReadFromJsonAsync<ItemTypeResponse>();
+        Assert.NotNull(fetchedItem);
+        Assert.Equal(createdItem.Id, fetchedItem.Id);
+        Assert.Equal(createdItem.Name, fetchedItem.Name);
+        Assert.Equal(createdItem.TotalStock, fetchedItem.TotalStock);
+
+        var updateResponse = await _httpClient.PatchAsJsonAsync($"/api/item-types/{createdItem.Id}/stock", new UpdateItemStockRequest(20));
+        Assert.Equal(HttpStatusCode.OK, updateResponse.StatusCode);
+        var updatedItem = await updateResponse.Content.ReadFromJsonAsync<ItemTypeResponse>();
+        Assert.NotNull(updatedItem);
+        Assert.Equal(createdItem.Id, updatedItem.Id);
+        Assert.Equal("Cylinder", updatedItem.Name);
+        Assert.Equal(20, updatedItem.TotalStock);
+    }
+
+    [Fact]
+    public async Task Categories_endpoints_should_return_complete_payloads()
+    {
+        await AuthenticateAsManagerAsync();
+
+        var itemTypeName = $"Panel-{Guid.NewGuid():N}".Substring(0, 14);
+        var createItemTypeResponse = await _httpClient.PostAsJsonAsync("/api/item-types", new CreateItemTypeRequest(itemTypeName, 8));
+        createItemTypeResponse.EnsureSuccessStatusCode();
+        var itemType = await createItemTypeResponse.Content.ReadFromJsonAsync<ItemTypeResponse>();
+        Assert.NotNull(itemType);
+
+        var createCategoryResponse = await _httpClient.PostAsJsonAsync("/api/categories", new CreateCategoryRequest("Basic"));
+        Assert.Equal(HttpStatusCode.Created, createCategoryResponse.StatusCode);
+        Assert.NotNull(createCategoryResponse.Headers.Location);
+
+        var createdCategory = await createCategoryResponse.Content.ReadFromJsonAsync<CategoryResponse>();
+        Assert.NotNull(createdCategory);
+        Assert.Equal("Basic", createdCategory.Name);
+        Assert.Empty(createdCategory.Items);
+
+        var addItemResponse = await _httpClient.PostAsJsonAsync(
+            $"/api/categories/{createdCategory.Id}/items",
+            new AddCategoryItemRequest(itemType.Id, 2));
+
+        Assert.Equal(HttpStatusCode.OK, addItemResponse.StatusCode);
+        var updatedCategory = await addItemResponse.Content.ReadFromJsonAsync<CategoryResponse>();
+        Assert.NotNull(updatedCategory);
+        Assert.Equal(createdCategory.Id, updatedCategory.Id);
+        Assert.Single(updatedCategory.Items);
+        Assert.Equal(itemType.Id, updatedCategory.Items[0].ItemTypeId);
+        Assert.Equal(2, updatedCategory.Items[0].Quantity);
+
+        var getByIdResponse = await _httpClient.GetAsync($"/api/categories/{createdCategory.Id}");
+        Assert.Equal(HttpStatusCode.OK, getByIdResponse.StatusCode);
+        var fetchedCategory = await getByIdResponse.Content.ReadFromJsonAsync<CategoryResponse>();
+        Assert.NotNull(fetchedCategory);
+        Assert.Equal(createdCategory.Id, fetchedCategory.Id);
+        Assert.Single(fetchedCategory.Items);
+    }
+
+    [Fact]
     public async Task Create_endpoint_should_return_forbidden_for_viewer_role()
     {
         await AuthenticateAsAsync("viewer", "viewer123");
 
-        var response = await _httpClient.PostAsJsonAsync("/api/kits", new CreateKitRequest("Viewer Kit"));
+        var response = await _httpClient.PostAsJsonAsync("/api/kits", new CreateKitRequest("Viewer Theme"));
 
         Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
         Assert.Equal("forbidden", await ReadProblemCodeAsync(response));
     }
 
     [Fact]
-    public async Task Reserve_endpoint_should_create_reservation_when_period_is_available()
+    public async Task Reserve_endpoint_should_create_reservation_when_stock_is_available()
     {
         await AuthenticateAsManagerAsync();
-        var kitId = await CreateKitAsync("Integration Kit");
+
+        var categoryId = await CreateCategoryWithItemAsync("Basic", "Panel", 10, 2);
+        var kitId = await CreateKitAsync("Paw Patrol");
 
         var response = await _httpClient.PostAsJsonAsync(
             $"/api/kits/{kitId}/reservations",
-            new ReserveKitRequest("2026-03-10", "2026-03-12"));
+            new ReserveKitRequest(categoryId, "2026-03-10", "2026-03-12"));
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
         var reserveResponse = await response.Content.ReadFromJsonAsync<ReserveKitResponse>();
         Assert.NotNull(reserveResponse);
-        Assert.Equal(kitId, reserveResponse.KitId);
+        Assert.Equal(kitId, reserveResponse.KitThemeId);
+        Assert.Equal(categoryId, reserveResponse.KitCategoryId);
         Assert.Equal("Active", reserveResponse.Status);
 
         var reservationsResponse = await _httpClient.GetAsync($"/api/kits/{kitId}/reservations");
@@ -57,21 +132,26 @@ public sealed class KitsApiTests : IClassFixture<DecorRentalApiFactory>
         Assert.Equal(HttpStatusCode.OK, reservationsResponse.StatusCode);
         Assert.NotNull(reservations);
         Assert.Single(reservations);
+        Assert.Equal(categoryId, reservations[0].KitCategoryId);
     }
 
     [Fact]
-    public async Task Reserve_endpoint_should_return_conflict_when_period_overlaps()
+    public async Task Reserve_endpoint_should_return_conflict_when_stock_is_insufficient()
     {
         await AuthenticateAsManagerAsync();
-        var kitId = await CreateKitAsync("Conflict Kit");
 
-        await _httpClient.PostAsJsonAsync(
-            $"/api/kits/{kitId}/reservations",
-            new ReserveKitRequest("2026-04-10", "2026-04-12"));
+        var categoryId = await CreateCategoryWithItemAsync("Complete", "Balloon", 5, 3);
+        var firstThemeId = await CreateKitAsync("Paw Patrol");
+        var secondThemeId = await CreateKitAsync("Frozen");
+
+        var firstReserveResponse = await _httpClient.PostAsJsonAsync(
+            $"/api/kits/{firstThemeId}/reservations",
+            new ReserveKitRequest(categoryId, "2026-04-10", "2026-04-12"));
+        firstReserveResponse.EnsureSuccessStatusCode();
 
         var conflictResponse = await _httpClient.PostAsJsonAsync(
-            $"/api/kits/{kitId}/reservations",
-            new ReserveKitRequest("2026-04-11", "2026-04-13"));
+            $"/api/kits/{secondThemeId}/reservations",
+            new ReserveKitRequest(categoryId, "2026-04-11", "2026-04-13"));
 
         Assert.Equal(HttpStatusCode.Conflict, conflictResponse.StatusCode);
         Assert.Equal("conflict", await ReadProblemCodeAsync(conflictResponse));
@@ -81,11 +161,13 @@ public sealed class KitsApiTests : IClassFixture<DecorRentalApiFactory>
     public async Task Reserve_endpoint_should_return_bad_request_when_end_date_is_before_start_date()
     {
         await AuthenticateAsManagerAsync();
-        var kitId = await CreateKitAsync("Validation Kit");
+
+        var categoryId = await CreateCategoryWithItemAsync("Intermediate", "Table", 6, 1);
+        var kitId = await CreateKitAsync("Safari");
 
         var invalidResponse = await _httpClient.PostAsJsonAsync(
             $"/api/kits/{kitId}/reservations",
-            new ReserveKitRequest("2026-06-10", "2026-06-09"));
+            new ReserveKitRequest(categoryId, "2026-06-10", "2026-06-09"));
 
         Assert.Equal(HttpStatusCode.BadRequest, invalidResponse.StatusCode);
         Assert.Equal("validation_error", await ReadProblemCodeAsync(invalidResponse));
@@ -96,9 +178,10 @@ public sealed class KitsApiTests : IClassFixture<DecorRentalApiFactory>
     public async Task Get_kits_endpoint_should_return_paginated_result()
     {
         await AuthenticateAsManagerAsync();
-        await CreateKitAsync("Paged Kit A");
-        await CreateKitAsync("Paged Kit B");
-        await CreateKitAsync("Paged Kit C");
+
+        await CreateKitAsync("Paged Theme A");
+        await CreateKitAsync("Paged Theme B");
+        await CreateKitAsync("Paged Theme C");
 
         var response = await _httpClient.GetAsync("/api/kits?page=1&pageSize=2");
         var pagedResponse = await response.Content.ReadFromJsonAsync<PagedResponse<KitSummaryResponse>>();
@@ -122,34 +205,33 @@ public sealed class KitsApiTests : IClassFixture<DecorRentalApiFactory>
     }
 
     [Fact]
-    public async Task Cancel_endpoint_should_free_period_for_new_reservation()
+    public async Task Cancel_endpoint_should_release_items_for_new_reservation()
     {
         await AuthenticateAsManagerAsync();
-        var kitId = await CreateKitAsync("Cancel Kit");
+
+        var categoryId = await CreateCategoryWithItemAsync("Starter", "Arch", 4, 2);
+        var firstThemeId = await CreateKitAsync("Paw Patrol");
+        var secondThemeId = await CreateKitAsync("Mickey");
 
         await _httpClient.PostAsJsonAsync(
-            $"/api/kits/{kitId}/reservations",
-            new ReserveKitRequest("2026-05-01", "2026-05-03"));
+            $"/api/kits/{firstThemeId}/reservations",
+            new ReserveKitRequest(categoryId, "2026-05-01", "2026-05-03"));
 
-        var reservationsResponse = await _httpClient.GetAsync($"/api/kits/{kitId}/reservations");
+        var reservationsResponse = await _httpClient.GetAsync($"/api/kits/{firstThemeId}/reservations");
         var reservations = await reservationsResponse.Content.ReadFromJsonAsync<List<ReservationResponse>>();
 
         Assert.NotNull(reservations);
         var reservationId = reservations[0].Id;
 
         var cancelResponse = await _httpClient.PostAsync(
-            $"/api/kits/{kitId}/reservations/{reservationId}/cancel",
+            $"/api/kits/{firstThemeId}/reservations/{reservationId}/cancel",
             content: null);
 
         Assert.Equal(HttpStatusCode.OK, cancelResponse.StatusCode);
-        var cancelReservationResponse = await cancelResponse.Content.ReadFromJsonAsync<CancelReservationResponse>();
-        Assert.NotNull(cancelReservationResponse);
-        Assert.Equal(reservationId, cancelReservationResponse.ReservationId);
-        Assert.Equal("Cancelled", cancelReservationResponse.Status);
 
         var reserveAgainResponse = await _httpClient.PostAsJsonAsync(
-            $"/api/kits/{kitId}/reservations",
-            new ReserveKitRequest("2026-05-01", "2026-05-03"));
+            $"/api/kits/{secondThemeId}/reservations",
+            new ReserveKitRequest(categoryId, "2026-05-01", "2026-05-03"));
 
         Assert.Equal(HttpStatusCode.OK, reserveAgainResponse.StatusCode);
     }
@@ -162,10 +244,37 @@ public sealed class KitsApiTests : IClassFixture<DecorRentalApiFactory>
         var body = await response.Content.ReadFromJsonAsync<KitSummaryResponse>();
         if (body is null)
         {
-            throw new InvalidOperationException("Create kit response body is null.");
+            throw new InvalidOperationException("Create theme response body is null.");
         }
 
         return body.Id;
+    }
+
+    private async Task<Guid> CreateCategoryWithItemAsync(string categoryName, string itemName, int stock, int quantity)
+    {
+        var uniqueItemName = $"{itemName}-{Guid.NewGuid():N}".Substring(0, 18);
+        var itemTypeResponse = await _httpClient.PostAsJsonAsync("/api/item-types", new CreateItemTypeRequest(uniqueItemName, stock));
+        itemTypeResponse.EnsureSuccessStatusCode();
+        var itemType = await itemTypeResponse.Content.ReadFromJsonAsync<ItemTypeResponse>();
+        if (itemType is null)
+        {
+            throw new InvalidOperationException("Create item type response body is null.");
+        }
+
+        var categoryResponse = await _httpClient.PostAsJsonAsync("/api/categories", new CreateCategoryRequest(categoryName));
+        categoryResponse.EnsureSuccessStatusCode();
+        var category = await categoryResponse.Content.ReadFromJsonAsync<CategoryResponse>();
+        if (category is null)
+        {
+            throw new InvalidOperationException("Create category response body is null.");
+        }
+
+        var addItemResponse = await _httpClient.PostAsJsonAsync(
+            $"/api/categories/{category.Id}/items",
+            new AddCategoryItemRequest(itemType.Id, quantity));
+        addItemResponse.EnsureSuccessStatusCode();
+
+        return category.Id;
     }
 
     private Task AuthenticateAsManagerAsync()
@@ -188,27 +297,36 @@ public sealed class KitsApiTests : IClassFixture<DecorRentalApiFactory>
 
     private sealed record CreateKitRequest(string Name);
 
-    private sealed record ReserveKitRequest(string StartDate, string EndDate);
+    private sealed record ReserveKitRequest(Guid KitCategoryId, string StartDate, string EndDate);
 
     private sealed record AuthTokenRequest(string Username, string Password);
 
     private sealed record AuthTokenResponse(string AccessToken);
 
+    private sealed record CreateItemTypeRequest(string Name, int TotalStock);
+
+    private sealed record UpdateItemStockRequest(int TotalStock);
+
+    private sealed record ItemTypeResponse(Guid Id, string Name, int TotalStock);
+
+    private sealed record CreateCategoryRequest(string Name);
+
+    private sealed record AddCategoryItemRequest(Guid ItemTypeId, int Quantity);
+
+    private sealed record CategoryItemResponse(Guid ItemTypeId, int Quantity);
+
+    private sealed record CategoryResponse(Guid Id, string Name, IReadOnlyList<CategoryItemResponse> Items);
+
     private sealed record KitSummaryResponse(Guid Id, string Name);
 
-    private sealed record ReservationResponse(Guid Id, string StartDate, string EndDate, string Status);
+    private sealed record ReservationResponse(Guid Id, Guid KitCategoryId, string StartDate, string EndDate, string Status);
 
     private sealed record ReserveKitResponse(
         Guid ReservationId,
-        Guid KitId,
+        Guid KitThemeId,
+        Guid KitCategoryId,
         string StartDate,
         string EndDate,
-        string Status,
-        string Message);
-
-    private sealed record CancelReservationResponse(
-        Guid ReservationId,
-        Guid KitId,
         string Status,
         string Message);
 

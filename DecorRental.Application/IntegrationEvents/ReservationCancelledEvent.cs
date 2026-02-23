@@ -3,7 +3,8 @@ using DecorRental.Application.Messaging;
 namespace DecorRental.Application.IntegrationEvents;
 
 public sealed record ReservationCancelledEvent(
-    Guid KitId,
+    Guid KitThemeId,
+    Guid KitCategoryId,
     Guid ReservationId,
     string Status) : IIntegrationEvent
 {
