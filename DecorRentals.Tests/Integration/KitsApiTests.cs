@@ -25,6 +25,77 @@ public sealed class KitsApiTests : IClassFixture<DecorRentalApiFactory>
     }
 
     [Fact]
+    public async Task Item_types_endpoints_should_return_complete_payloads()
+    {
+        await AuthenticateAsManagerAsync();
+
+        var createResponse = await _httpClient.PostAsJsonAsync("/api/item-types", new CreateItemTypeRequest("Cylinder", 12));
+        Assert.Equal(HttpStatusCode.Created, createResponse.StatusCode);
+        Assert.NotNull(createResponse.Headers.Location);
+
+        var createdItem = await createResponse.Content.ReadFromJsonAsync<ItemTypeResponse>();
+        Assert.NotNull(createdItem);
+        Assert.Equal("Cylinder", createdItem.Name);
+        Assert.Equal(12, createdItem.TotalStock);
+
+        var getByIdResponse = await _httpClient.GetAsync($"/api/item-types/{createdItem.Id}");
+        Assert.Equal(HttpStatusCode.OK, getByIdResponse.StatusCode);
+        var fetchedItem = await getByIdResponse.Content.ReadFromJsonAsync<ItemTypeResponse>();
+        Assert.NotNull(fetchedItem);
+        Assert.Equal(createdItem.Id, fetchedItem.Id);
+        Assert.Equal(createdItem.Name, fetchedItem.Name);
+        Assert.Equal(createdItem.TotalStock, fetchedItem.TotalStock);
+
+        var updateResponse = await _httpClient.PatchAsJsonAsync($"/api/item-types/{createdItem.Id}/stock", new UpdateItemStockRequest(20));
+        Assert.Equal(HttpStatusCode.OK, updateResponse.StatusCode);
+        var updatedItem = await updateResponse.Content.ReadFromJsonAsync<ItemTypeResponse>();
+        Assert.NotNull(updatedItem);
+        Assert.Equal(createdItem.Id, updatedItem.Id);
+        Assert.Equal("Cylinder", updatedItem.Name);
+        Assert.Equal(20, updatedItem.TotalStock);
+    }
+
+    [Fact]
+    public async Task Categories_endpoints_should_return_complete_payloads()
+    {
+        await AuthenticateAsManagerAsync();
+
+        var itemTypeName = $"Panel-{Guid.NewGuid():N}".Substring(0, 14);
+        var createItemTypeResponse = await _httpClient.PostAsJsonAsync("/api/item-types", new CreateItemTypeRequest(itemTypeName, 8));
+        createItemTypeResponse.EnsureSuccessStatusCode();
+        var itemType = await createItemTypeResponse.Content.ReadFromJsonAsync<ItemTypeResponse>();
+        Assert.NotNull(itemType);
+
+        var createCategoryResponse = await _httpClient.PostAsJsonAsync("/api/categories", new CreateCategoryRequest("Basic"));
+        Assert.Equal(HttpStatusCode.Created, createCategoryResponse.StatusCode);
+        Assert.NotNull(createCategoryResponse.Headers.Location);
+
+        var createdCategory = await createCategoryResponse.Content.ReadFromJsonAsync<CategoryResponse>();
+        Assert.NotNull(createdCategory);
+        Assert.Equal("Basic", createdCategory.Name);
+        Assert.Empty(createdCategory.Items);
+
+        var addItemResponse = await _httpClient.PostAsJsonAsync(
+            $"/api/categories/{createdCategory.Id}/items",
+            new AddCategoryItemRequest(itemType.Id, 2));
+
+        Assert.Equal(HttpStatusCode.OK, addItemResponse.StatusCode);
+        var updatedCategory = await addItemResponse.Content.ReadFromJsonAsync<CategoryResponse>();
+        Assert.NotNull(updatedCategory);
+        Assert.Equal(createdCategory.Id, updatedCategory.Id);
+        Assert.Single(updatedCategory.Items);
+        Assert.Equal(itemType.Id, updatedCategory.Items[0].ItemTypeId);
+        Assert.Equal(2, updatedCategory.Items[0].Quantity);
+
+        var getByIdResponse = await _httpClient.GetAsync($"/api/categories/{createdCategory.Id}");
+        Assert.Equal(HttpStatusCode.OK, getByIdResponse.StatusCode);
+        var fetchedCategory = await getByIdResponse.Content.ReadFromJsonAsync<CategoryResponse>();
+        Assert.NotNull(fetchedCategory);
+        Assert.Equal(createdCategory.Id, fetchedCategory.Id);
+        Assert.Single(fetchedCategory.Items);
+    }
+
+    [Fact]
     public async Task Create_endpoint_should_return_forbidden_for_viewer_role()
     {
         await AuthenticateAsAsync("viewer", "viewer123");
@@ -181,7 +252,8 @@ public sealed class KitsApiTests : IClassFixture<DecorRentalApiFactory>
 
     private async Task<Guid> CreateCategoryWithItemAsync(string categoryName, string itemName, int stock, int quantity)
     {
-        var itemTypeResponse = await _httpClient.PostAsJsonAsync("/api/item-types", new CreateItemTypeRequest(itemName, stock));
+        var uniqueItemName = $"{itemName}-{Guid.NewGuid():N}".Substring(0, 18);
+        var itemTypeResponse = await _httpClient.PostAsJsonAsync("/api/item-types", new CreateItemTypeRequest(uniqueItemName, stock));
         itemTypeResponse.EnsureSuccessStatusCode();
         var itemType = await itemTypeResponse.Content.ReadFromJsonAsync<ItemTypeResponse>();
         if (itemType is null)
@@ -232,6 +304,8 @@ public sealed class KitsApiTests : IClassFixture<DecorRentalApiFactory>
     private sealed record AuthTokenResponse(string AccessToken);
 
     private sealed record CreateItemTypeRequest(string Name, int TotalStock);
+
+    private sealed record UpdateItemStockRequest(int TotalStock);
 
     private sealed record ItemTypeResponse(Guid Id, string Name, int TotalStock);
 
