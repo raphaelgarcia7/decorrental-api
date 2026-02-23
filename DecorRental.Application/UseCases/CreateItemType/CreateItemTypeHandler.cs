@@ -12,11 +12,11 @@ public sealed class CreateItemTypeHandler
         _repository = repository;
     }
 
-    public async Task<Guid> HandleAsync(CreateItemTypeCommand command, CancellationToken cancellationToken = default)
+    public async Task<ItemType> HandleAsync(CreateItemTypeCommand command, CancellationToken cancellationToken = default)
     {
         var itemType = new ItemType(command.Name, command.TotalStock);
         await _repository.AddAsync(itemType, cancellationToken);
 
-        return itemType.Id;
+        return itemType;
     }
 }

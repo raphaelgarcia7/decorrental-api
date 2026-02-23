@@ -12,11 +12,11 @@ public sealed class CreateKitCategoryHandler
         _repository = repository;
     }
 
-    public async Task<Guid> HandleAsync(CreateKitCategoryCommand command, CancellationToken cancellationToken = default)
+    public async Task<KitCategory> HandleAsync(CreateKitCategoryCommand command, CancellationToken cancellationToken = default)
     {
         var category = new KitCategory(command.Name);
         await _repository.AddAsync(category, cancellationToken);
 
-        return category.Id;
+        return category;
     }
 }
