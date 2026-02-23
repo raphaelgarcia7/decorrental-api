@@ -1,0 +1,29 @@
+using DecorRental.Application.Exceptions;
+using DecorRental.Domain.Repositories;
+
+namespace DecorRental.Application.UseCases.AddCategoryItem;
+
+public sealed class AddCategoryItemHandler
+{
+    private readonly IKitCategoryRepository _categoryRepository;
+    private readonly IItemTypeRepository _itemTypeRepository;
+
+    public AddCategoryItemHandler(IKitCategoryRepository categoryRepository, IItemTypeRepository itemTypeRepository)
+    {
+        _categoryRepository = categoryRepository;
+        _itemTypeRepository = itemTypeRepository;
+    }
+
+    public async Task HandleAsync(AddCategoryItemCommand command, CancellationToken cancellationToken = default)
+    {
+        var category = await _categoryRepository.GetByIdAsync(command.CategoryId, cancellationToken)
+            ?? throw new NotFoundException("Category not found.");
+
+        var itemType = await _itemTypeRepository.GetByIdAsync(command.ItemTypeId, cancellationToken)
+            ?? throw new NotFoundException("Item type not found.");
+
+        _ = itemType;
+        category.AddOrUpdateItem(command.ItemTypeId, command.Quantity);
+        await _categoryRepository.SaveAsync(category, cancellationToken);
+    }
+}

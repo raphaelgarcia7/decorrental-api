@@ -1,3 +1,3 @@
 namespace DecorRental.Application.UseCases.CancelReservation;
 
-public record CancelReservationCommand(Guid KitId, Guid ReservationId);
+public record CancelReservationCommand(Guid KitThemeId, Guid ReservationId);

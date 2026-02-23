@@ -3,7 +3,8 @@ using DecorRental.Application.Messaging;
 namespace DecorRental.Application.IntegrationEvents;
 
 public sealed record ReservationCreatedEvent(
-    Guid KitId,
+    Guid KitThemeId,
+    Guid KitCategoryId,
     Guid ReservationId,
     DateOnly StartDate,
     DateOnly EndDate,

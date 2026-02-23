@@ -1,4 +1,4 @@
-﻿using DecorRental.Domain.Entities;
+using DecorRental.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -8,15 +8,19 @@ public sealed class ReservationConfiguration : IEntityTypeConfiguration<Reservat
 {
     public void Configure(EntityTypeBuilder<Reservation> builder)
     {
+        builder.ToTable("Reservations");
         builder.HasKey(reservation => reservation.Id);
 
-        // Armazena enum como int no banco
-        builder.Property(reservation => reservation.Status).HasConversion<int>();
+        builder.Property(reservation => reservation.Status)
+            .HasConversion<int>();
 
-        // DateRange é Value Object, não vira tabela própria
+        builder.HasOne<KitCategory>()
+            .WithMany()
+            .HasForeignKey(reservation => reservation.KitCategoryId)
+            .OnDelete(DeleteBehavior.Restrict);
+
         builder.OwnsOne(reservation => reservation.Period, period =>
         {
-            // SQLite não lida bem com DateOnly, então convertemos para DateTime
             period.Property(dateRange => dateRange.Start)
                 .HasColumnName("StartDate")
                 .HasConversion(
@@ -29,5 +33,15 @@ public sealed class ReservationConfiguration : IEntityTypeConfiguration<Reservat
                     date => date.ToDateTime(TimeOnly.MinValue),
                     dateTime => DateOnly.FromDateTime(dateTime));
         });
+
+        builder.HasMany(reservation => reservation.Items)
+            .WithOne()
+            .HasForeignKey(reservationItem => reservationItem.ReservationId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Navigation(reservation => reservation.Items)
+            .UsePropertyAccessMode(PropertyAccessMode.Field);
+
+        builder.HasIndex(reservation => new { reservation.Status, reservation.KitThemeId });
     }
 }

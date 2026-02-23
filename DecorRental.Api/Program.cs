@@ -4,10 +4,16 @@ using DecorRental.Api.Security;
 using DecorRental.Api.Validators;
 using DecorRental.Application.Messaging;
 using DecorRental.Application.UseCases.CancelReservation;
+using DecorRental.Application.UseCases.CreateItemType;
 using DecorRental.Application.UseCases.CreateKit;
+using DecorRental.Application.UseCases.CreateKitCategory;
+using DecorRental.Application.UseCases.AddCategoryItem;
 using DecorRental.Application.UseCases.GetKitById;
+using DecorRental.Application.UseCases.GetKitCategories;
 using DecorRental.Application.UseCases.GetKits;
+using DecorRental.Application.UseCases.GetItemTypes;
 using DecorRental.Application.UseCases.ReserveKit;
+using DecorRental.Application.UseCases.UpdateItemStock;
 using DecorRental.Domain.Repositories;
 using DecorRental.Infrastructure.Messaging;
 using DecorRental.Infrastructure.Persistence;
@@ -107,12 +113,21 @@ builder.Services.AddDbContext<DecorRentalDbContext>(options =>
     options.UseSqlite(
         builder.Configuration.GetConnectionString("DefaultConnection")));
 
-builder.Services.AddScoped<IKitRepository, EfKitRepository>();
+builder.Services.AddScoped<IKitThemeRepository, EfKitThemeRepository>();
+builder.Services.AddScoped<IKitCategoryRepository, EfKitCategoryRepository>();
+builder.Services.AddScoped<IItemTypeRepository, EfItemTypeRepository>();
+builder.Services.AddScoped<IReservationQueryRepository, EfReservationQueryRepository>();
 builder.Services.AddScoped<CreateKitHandler>();
 builder.Services.AddScoped<GetKitByIdHandler>();
 builder.Services.AddScoped<GetKitsHandler>();
 builder.Services.AddScoped<CancelReservationHandler>();
 builder.Services.AddScoped<ReserveKitHandler>();
+builder.Services.AddScoped<CreateItemTypeHandler>();
+builder.Services.AddScoped<GetItemTypesHandler>();
+builder.Services.AddScoped<UpdateItemStockHandler>();
+builder.Services.AddScoped<CreateKitCategoryHandler>();
+builder.Services.AddScoped<AddCategoryItemHandler>();
+builder.Services.AddScoped<GetKitCategoriesHandler>();
 
 builder.Services.AddValidatorsFromAssemblyContaining<CreateKitRequestValidator>();
 builder.Services.AddFluentValidationAutoValidation();

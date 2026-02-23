@@ -6,16 +6,16 @@ namespace DecorRental.Application.UseCases.GetKitById;
 
 public sealed class GetKitByIdHandler
 {
-    private readonly IKitRepository _repository;
+    private readonly IKitThemeRepository _repository;
 
-    public GetKitByIdHandler(IKitRepository repository)
+    public GetKitByIdHandler(IKitThemeRepository repository)
     {
         _repository = repository;
     }
 
-    public async Task<Kit> HandleAsync(GetKitByIdQuery query, CancellationToken cancellationToken = default)
+    public async Task<KitTheme> HandleAsync(GetKitByIdQuery query, CancellationToken cancellationToken = default)
     {
-        return await _repository.GetByIdAsync(query.KitId, cancellationToken)
-            ?? throw new NotFoundException("Kit not found.");
+        return await _repository.GetByIdAsync(query.KitThemeId, cancellationToken)
+            ?? throw new NotFoundException("Kit theme not found.");
     }
 }

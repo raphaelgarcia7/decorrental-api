@@ -2,7 +2,8 @@ namespace DecorRental.Api.Contracts;
 
 public sealed record ReserveKitResponse(
     Guid ReservationId,
-    Guid KitId,
+    Guid KitThemeId,
+    Guid KitCategoryId,
     DateOnly StartDate,
     DateOnly EndDate,
     string Status,

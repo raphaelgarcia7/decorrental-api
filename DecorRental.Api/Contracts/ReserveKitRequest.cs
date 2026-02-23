@@ -1,3 +1,3 @@
 namespace DecorRental.Api.Contracts;
 
-public record ReserveKitRequest(DateOnly StartDate, DateOnly EndDate);
+public sealed record ReserveKitRequest(Guid KitCategoryId, DateOnly StartDate, DateOnly EndDate);

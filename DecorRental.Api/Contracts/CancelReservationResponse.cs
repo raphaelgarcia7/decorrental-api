@@ -2,6 +2,6 @@ namespace DecorRental.Api.Contracts;
 
 public sealed record CancelReservationResponse(
     Guid ReservationId,
-    Guid KitId,
+    Guid KitThemeId,
     string Status,
     string Message);

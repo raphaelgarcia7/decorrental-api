@@ -4,9 +4,9 @@ namespace DecorRental.Application.UseCases.GetKits;
 
 public sealed class GetKitsHandler
 {
-    private readonly IKitRepository _repository;
+    private readonly IKitThemeRepository _repository;
 
-    public GetKitsHandler(IKitRepository repository)
+    public GetKitsHandler(IKitThemeRepository repository)
     {
         _repository = repository;
     }

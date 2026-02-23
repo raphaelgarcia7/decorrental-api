@@ -1,7 +1,7 @@
-﻿namespace DecorRental.Application.UseCases.ReserveKit;
+namespace DecorRental.Application.UseCases.ReserveKit;
 
-public record ReserveKitCommand(
-    Guid KitId,
+public sealed record ReserveKitCommand(
+    Guid KitThemeId,
+    Guid KitCategoryId,
     DateOnly StartDate,
-    DateOnly EndDate
-);
+    DateOnly EndDate);

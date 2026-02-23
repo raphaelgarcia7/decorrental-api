@@ -41,10 +41,10 @@ public class KitsController : ControllerBase
     [ProducesResponseType(typeof(KitSummaryResponse), StatusCodes.Status201Created)]
     public async Task<IActionResult> Create([FromBody] CreateKitRequest request, CancellationToken cancellationToken)
     {
-        var kitId = await _createHandler.HandleAsync(new CreateKitCommand(request.Name), cancellationToken);
-        var response = new KitSummaryResponse(kitId, request.Name);
+        var kitThemeId = await _createHandler.HandleAsync(new CreateKitCommand(request.Name), cancellationToken);
+        var response = new KitSummaryResponse(kitThemeId, request.Name);
 
-        return CreatedAtAction(nameof(GetById), new { id = kitId }, response);
+        return CreatedAtAction(nameof(GetById), new { id = kitThemeId }, response);
     }
 
     [HttpGet]
@@ -65,8 +65,8 @@ public class KitsController : ControllerBase
     [ProducesResponseType(typeof(KitDetailResponse), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetById(Guid id, CancellationToken cancellationToken)
     {
-        var kit = await _getKitByIdHandler.HandleAsync(new GetKitByIdQuery(id), cancellationToken);
-        var response = ToDetail(kit);
+        var kitTheme = await _getKitByIdHandler.HandleAsync(new GetKitByIdQuery(id), cancellationToken);
+        var response = ToDetail(kitTheme);
 
         return Ok(response);
     }
@@ -75,10 +75,11 @@ public class KitsController : ControllerBase
     [ProducesResponseType(typeof(IReadOnlyList<ReservationResponse>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetReservations(Guid id, CancellationToken cancellationToken)
     {
-        var kit = await _getKitByIdHandler.HandleAsync(new GetKitByIdQuery(id), cancellationToken);
-        var response = kit.Reservations
+        var kitTheme = await _getKitByIdHandler.HandleAsync(new GetKitByIdQuery(id), cancellationToken);
+        var response = kitTheme.Reservations
             .Select(reservation => new ReservationResponse(
                 reservation.Id,
+                reservation.KitCategoryId,
                 reservation.Period.Start,
                 reservation.Period.End,
                 reservation.Status.ToString()))
@@ -94,13 +95,15 @@ public class KitsController : ControllerBase
     {
         var command = new ReserveKitCommand(
             id,
+            request.KitCategoryId,
             request.StartDate,
             request.EndDate);
 
         var result = await _reserveHandler.HandleAsync(command, cancellationToken);
         var response = new ReserveKitResponse(
             result.ReservationId,
-            result.KitId,
+            result.KitThemeId,
+            result.KitCategoryId,
             result.StartDate,
             result.EndDate,
             result.ReservationStatus,
@@ -117,26 +120,27 @@ public class KitsController : ControllerBase
         var result = await _cancelHandler.HandleAsync(new CancelReservationCommand(id, reservationId), cancellationToken);
         var response = new CancelReservationResponse(
             result.ReservationId,
-            result.KitId,
+            result.KitThemeId,
             result.ReservationStatus,
             "Reservation cancelled successfully.");
 
         return Ok(response);
     }
 
-    private static KitSummaryResponse ToSummary(Kit kit)
-        => new(kit.Id, kit.Name);
+    private static KitSummaryResponse ToSummary(KitTheme kitTheme)
+        => new(kitTheme.Id, kitTheme.Name);
 
-    private static KitDetailResponse ToDetail(Kit kit)
+    private static KitDetailResponse ToDetail(KitTheme kitTheme)
     {
-        var reservations = kit.Reservations
+        var reservations = kitTheme.Reservations
             .Select(reservation => new ReservationResponse(
                 reservation.Id,
+                reservation.KitCategoryId,
                 reservation.Period.Start,
                 reservation.Period.End,
                 reservation.Status.ToString()))
             .ToList();
 
-        return new KitDetailResponse(kit.Id, kit.Name, reservations);
+        return new KitDetailResponse(kitTheme.Id, kitTheme.Name, reservations);
     }
 }

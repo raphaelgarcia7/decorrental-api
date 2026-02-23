@@ -7,6 +7,9 @@ public sealed class ReserveKitRequestValidator : AbstractValidator<ReserveKitReq
 {
     public ReserveKitRequestValidator()
     {
+        RuleFor(request => request.KitCategoryId)
+            .NotEmpty().WithMessage("KitCategoryId is required.");
+
         RuleFor(request => request.StartDate)
             .NotEmpty().WithMessage("StartDate is required.");
 
