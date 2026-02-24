@@ -21,7 +21,9 @@ public class CancelReservationTests
         var kitTheme = new KitTheme("Patrol Theme");
         var reservation = kitTheme.Reserve(
             category,
-            new DateRange(new DateOnly(2026, 1, 10), new DateOnly(2026, 1, 12)));
+            new DateRange(new DateOnly(2026, 1, 10), new DateOnly(2026, 1, 12)),
+            false,
+            null);
 
         var repository = new FakeKitThemeRepository();
         var messageBus = new FakeMessageBus();

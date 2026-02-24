@@ -82,7 +82,9 @@ public class KitsController : ControllerBase
                 reservation.KitCategoryId,
                 reservation.Period.Start,
                 reservation.Period.End,
-                reservation.Status.ToString()))
+                reservation.Status.ToString(),
+                reservation.IsStockOverride,
+                reservation.StockOverrideReason))
             .ToList();
 
         return Ok(response);
@@ -97,7 +99,9 @@ public class KitsController : ControllerBase
             id,
             request.KitCategoryId,
             request.StartDate,
-            request.EndDate);
+            request.EndDate,
+            request.AllowStockOverride,
+            request.StockOverrideReason);
 
         var result = await _reserveHandler.HandleAsync(command, cancellationToken);
         var response = new ReserveKitResponse(
@@ -107,6 +111,8 @@ public class KitsController : ControllerBase
             result.StartDate,
             result.EndDate,
             result.ReservationStatus,
+            result.IsStockOverride,
+            result.StockOverrideReason,
             "Reservation created successfully.");
 
         return Ok(response);
@@ -138,7 +144,9 @@ public class KitsController : ControllerBase
                 reservation.KitCategoryId,
                 reservation.Period.Start,
                 reservation.Period.End,
-                reservation.Status.ToString()))
+                reservation.Status.ToString(),
+                reservation.IsStockOverride,
+                reservation.StockOverrideReason))
             .ToList();
 
         return new KitDetailResponse(kitTheme.Id, kitTheme.Name, reservations);

@@ -7,7 +7,9 @@ public sealed record ReservationResponse(
     Guid KitCategoryId,
     DateOnly StartDate,
     DateOnly EndDate,
-    string Status);
+    string Status,
+    bool IsStockOverride,
+    string? StockOverrideReason);
 
 public sealed record KitDetailResponse(
     Guid Id,

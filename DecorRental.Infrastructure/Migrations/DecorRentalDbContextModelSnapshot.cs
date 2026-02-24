@@ -102,10 +102,17 @@ namespace DecorRental.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("TEXT");
 
+                    b.Property<bool>("IsStockOverride")
+                        .HasColumnType("INTEGER");
+
                     b.Property<Guid>("KitCategoryId")
                         .HasColumnType("TEXT");
 
                     b.Property<Guid>("KitThemeId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("StockOverrideReason")
+                        .HasMaxLength(500)
                         .HasColumnType("TEXT");
 
                     b.Property<int>("Status")

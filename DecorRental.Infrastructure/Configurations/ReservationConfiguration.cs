@@ -14,6 +14,12 @@ public sealed class ReservationConfiguration : IEntityTypeConfiguration<Reservat
         builder.Property(reservation => reservation.Status)
             .HasConversion<int>();
 
+        builder.Property(reservation => reservation.IsStockOverride)
+            .IsRequired();
+
+        builder.Property(reservation => reservation.StockOverrideReason)
+            .HasMaxLength(500);
+
         builder.HasOne<KitCategory>()
             .WithMany()
             .HasForeignKey(reservation => reservation.KitCategoryId)
