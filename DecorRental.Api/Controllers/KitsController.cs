@@ -113,7 +113,7 @@ public class KitsController : ControllerBase
             result.ReservationStatus,
             result.IsStockOverride,
             result.StockOverrideReason,
-            "Reservation created successfully.");
+            "Reserva criada com sucesso.");
 
         return Ok(response);
     }
@@ -128,7 +128,7 @@ public class KitsController : ControllerBase
             result.ReservationId,
             result.KitThemeId,
             result.ReservationStatus,
-            "Reservation cancelled successfully.");
+            "Reserva cancelada com sucesso.");
 
         return Ok(response);
     }

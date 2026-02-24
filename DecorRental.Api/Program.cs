@@ -64,8 +64,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 var problemDetails = new ProblemDetails
                 {
                     Type = "https://httpstatuses.com/401",
-                    Title = "Unauthorized",
-                    Detail = "A valid access token is required to access this resource.",
+                    Title = "Nao autorizado",
+                    Detail = "Um token de acesso valido e obrigatorio para acessar este recurso.",
                     Status = StatusCodes.Status401Unauthorized,
                     Instance = context.HttpContext.Request.Path
                 };
@@ -83,8 +83,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 var problemDetails = new ProblemDetails
                 {
                     Type = "https://httpstatuses.com/403",
-                    Title = "Forbidden",
-                    Detail = "Your user does not have permission to access this resource.",
+                    Title = "Proibido",
+                    Detail = "Seu usuario nao tem permissao para acessar este recurso.",
                     Status = StatusCodes.Status403Forbidden,
                     Instance = context.HttpContext.Request.Path
                 };
@@ -145,8 +145,8 @@ builder.Services
             var validationProblemDetails = new ValidationProblemDetails(context.ModelState)
             {
                 Type = "https://httpstatuses.com/400",
-                Title = "Validation failed.",
-                Detail = "One or more request fields are invalid.",
+                Title = "Falha de validacao.",
+                Detail = "Um ou mais campos da requisicao sao invalidos.",
                 Status = StatusCodes.Status400BadRequest,
                 Instance = context.HttpContext.Request.Path
             };

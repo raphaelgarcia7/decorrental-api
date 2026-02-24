@@ -8,9 +8,9 @@ public sealed class AddCategoryItemRequestValidator : AbstractValidator<AddCateg
     public AddCategoryItemRequestValidator()
     {
         RuleFor(request => request.ItemTypeId)
-            .NotEmpty().WithMessage("ItemTypeId is required.");
+            .NotEmpty().WithMessage("ItemTypeId e obrigatorio.");
 
         RuleFor(request => request.Quantity)
-            .GreaterThan(0).WithMessage("Quantity must be greater than zero.");
+            .GreaterThan(0).WithMessage("Quantity deve ser maior que zero.");
     }
 }

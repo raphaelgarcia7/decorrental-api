@@ -16,6 +16,6 @@ public sealed class GetKitCategoryByIdHandler
     public async Task<KitCategory> HandleAsync(Guid categoryId, CancellationToken cancellationToken = default)
     {
         return await _repository.GetByIdAsync(categoryId, cancellationToken)
-            ?? throw new NotFoundException("Category not found.");
+            ?? throw new NotFoundException("Categoria nao encontrada.");
     }
 }

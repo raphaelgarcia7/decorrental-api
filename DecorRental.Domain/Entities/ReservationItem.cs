@@ -13,7 +13,7 @@ public class ReservationItem
     {
         if (quantity <= 0)
         {
-            throw new DomainException("Reservation item quantity must be greater than zero.");
+            throw new DomainException("A quantidade do item da reserva deve ser maior que zero.");
         }
 
         Id = Guid.NewGuid();

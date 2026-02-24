@@ -26,7 +26,7 @@ public class Reservation
     {
         if (category is null)
         {
-            throw new DomainException("Category is required.");
+            throw new DomainException("Categoria e obrigatoria.");
         }
 
         if (category.Items.Count == 0)
@@ -65,7 +65,7 @@ public class Reservation
 
         if (isStockOverride && string.IsNullOrWhiteSpace(stockOverrideReason))
         {
-            throw new DomainException("Stock override reason is required.");
+            throw new DomainException("O motivo do override de estoque e obrigatorio.");
         }
 
         Id = reservationId;

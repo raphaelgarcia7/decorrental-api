@@ -10,7 +10,7 @@ namespace DecorRental.Domain.ValueObjects
         public DateRange(DateOnly start, DateOnly end)
         {
             if (end < start)
-                throw new DomainException("End date must be after start date.");
+                throw new DomainException("A data de termino deve ser posterior a data de inicio.");
 
             Start = start;
             End = end;

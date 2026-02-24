@@ -16,6 +16,6 @@ public sealed class GetItemTypeByIdHandler
     public async Task<ItemType> HandleAsync(Guid itemTypeId, CancellationToken cancellationToken = default)
     {
         return await _repository.GetByIdAsync(itemTypeId, cancellationToken)
-            ?? throw new NotFoundException("Item type not found.");
+            ?? throw new NotFoundException("Tipo de item nao encontrado.");
     }
 }

@@ -8,6 +8,6 @@ public sealed class UpdateItemStockRequestValidator : AbstractValidator<UpdateIt
     public UpdateItemStockRequestValidator()
     {
         RuleFor(request => request.TotalStock)
-            .GreaterThanOrEqualTo(0).WithMessage("TotalStock must be zero or greater.");
+            .GreaterThanOrEqualTo(0).WithMessage("TotalStock deve ser zero ou maior.");
     }
 }

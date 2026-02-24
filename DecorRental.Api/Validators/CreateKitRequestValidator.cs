@@ -8,7 +8,7 @@ public sealed class CreateKitRequestValidator : AbstractValidator<CreateKitReque
     public CreateKitRequestValidator()
     {
         RuleFor(request => request.Name)
-            .NotEmpty().WithMessage("Name is required.")
+            .NotEmpty().WithMessage("Nome e obrigatorio.")
             .MaximumLength(200).WithMessage("Name must have at most 200 characters.");
     }
 }

@@ -14,7 +14,7 @@ public class KitCategory
     {
         if (string.IsNullOrWhiteSpace(name))
         {
-            throw new DomainException("Category name is required.");
+            throw new DomainException("O nome da categoria e obrigatorio.");
         }
 
         Id = Guid.NewGuid();

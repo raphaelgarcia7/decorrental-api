@@ -12,12 +12,12 @@ public class ItemType
     {
         if (string.IsNullOrWhiteSpace(name))
         {
-            throw new DomainException("Item type name is required.");
+            throw new DomainException("O nome do tipo de item e obrigatorio.");
         }
 
         if (totalStock < 0)
         {
-            throw new DomainException("Total stock must be zero or greater.");
+            throw new DomainException("O estoque total deve ser zero ou maior.");
         }
 
         Id = Guid.NewGuid();
@@ -29,7 +29,7 @@ public class ItemType
     {
         if (totalStock < 0)
         {
-            throw new DomainException("Total stock must be zero or greater.");
+            throw new DomainException("O estoque total deve ser zero ou maior.");
         }
 
         TotalStock = totalStock;

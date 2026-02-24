@@ -16,6 +16,6 @@ public sealed class GetKitByIdHandler
     public async Task<KitTheme> HandleAsync(GetKitByIdQuery query, CancellationToken cancellationToken = default)
     {
         return await _repository.GetByIdAsync(query.KitThemeId, cancellationToken)
-            ?? throw new NotFoundException("Kit theme not found.");
+            ?? throw new NotFoundException("Tema de kit nao encontrado.");
     }
 }
