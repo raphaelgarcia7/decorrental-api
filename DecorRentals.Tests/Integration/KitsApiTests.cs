@@ -158,6 +158,62 @@ public sealed class KitsApiTests : IClassFixture<DecorRentalApiFactory>
     }
 
     [Fact]
+    public async Task Reserve_endpoint_should_allow_non_overlapping_period_with_same_item_stock()
+    {
+        await AuthenticateAsManagerAsync();
+
+        var categoryId = await CreateCategoryWithItemAsync("Basic", "Roman Panel", 1, 1);
+        var firstThemeId = await CreateKitAsync("Turma da Monica");
+        var secondThemeId = await CreateKitAsync("Paw Patrol");
+
+        var firstReserveResponse = await _httpClient.PostAsJsonAsync(
+            $"/api/kits/{firstThemeId}/reservations",
+            new ReserveKitRequest(categoryId, "2026-02-22", "2026-02-24"));
+        firstReserveResponse.EnsureSuccessStatusCode();
+
+        var secondReserveResponse = await _httpClient.PostAsJsonAsync(
+            $"/api/kits/{secondThemeId}/reservations",
+            new ReserveKitRequest(categoryId, "2026-02-25", "2026-02-26"));
+        secondReserveResponse.EnsureSuccessStatusCode();
+
+        var secondReservePayload = await secondReserveResponse.Content.ReadFromJsonAsync<ReserveKitResponse>();
+        Assert.NotNull(secondReservePayload);
+        Assert.False(secondReservePayload.IsStockOverride);
+        Assert.Null(secondReservePayload.StockOverrideReason);
+    }
+
+    [Fact]
+    public async Task Reserve_endpoint_should_allow_stock_override_when_reason_is_provided()
+    {
+        await AuthenticateAsManagerAsync();
+
+        var categoryId = await CreateCategoryWithItemAsync("Complete", "Roman Arch", 1, 1);
+        var firstThemeId = await CreateKitAsync("Turma da Monica");
+        var secondThemeId = await CreateKitAsync("Frozen");
+
+        var firstReserveResponse = await _httpClient.PostAsJsonAsync(
+            $"/api/kits/{firstThemeId}/reservations",
+            new ReserveKitRequest(categoryId, "2026-03-10", "2026-03-12"));
+        firstReserveResponse.EnsureSuccessStatusCode();
+
+        var overrideReserveResponse = await _httpClient.PostAsJsonAsync(
+            $"/api/kits/{secondThemeId}/reservations",
+            new ReserveKitRequest(
+                categoryId,
+                "2026-03-11",
+                "2026-03-12",
+                true,
+                "Aprovado para cliente recorrente e montagem prioritária."));
+
+        Assert.Equal(HttpStatusCode.OK, overrideReserveResponse.StatusCode);
+
+        var overridePayload = await overrideReserveResponse.Content.ReadFromJsonAsync<ReserveKitResponse>();
+        Assert.NotNull(overridePayload);
+        Assert.True(overridePayload.IsStockOverride);
+        Assert.Equal("Aprovado para cliente recorrente e montagem prioritária.", overridePayload.StockOverrideReason);
+    }
+
+    [Fact]
     public async Task Reserve_endpoint_should_return_bad_request_when_end_date_is_before_start_date()
     {
         await AuthenticateAsManagerAsync();
@@ -297,7 +353,12 @@ public sealed class KitsApiTests : IClassFixture<DecorRentalApiFactory>
 
     private sealed record CreateKitRequest(string Name);
 
-    private sealed record ReserveKitRequest(Guid KitCategoryId, string StartDate, string EndDate);
+    private sealed record ReserveKitRequest(
+        Guid KitCategoryId,
+        string StartDate,
+        string EndDate,
+        bool AllowStockOverride = false,
+        string? StockOverrideReason = null);
 
     private sealed record AuthTokenRequest(string Username, string Password);
 
@@ -319,7 +380,14 @@ public sealed class KitsApiTests : IClassFixture<DecorRentalApiFactory>
 
     private sealed record KitSummaryResponse(Guid Id, string Name);
 
-    private sealed record ReservationResponse(Guid Id, Guid KitCategoryId, string StartDate, string EndDate, string Status);
+    private sealed record ReservationResponse(
+        Guid Id,
+        Guid KitCategoryId,
+        string StartDate,
+        string EndDate,
+        string Status,
+        bool IsStockOverride,
+        string? StockOverrideReason);
 
     private sealed record ReserveKitResponse(
         Guid ReservationId,
@@ -328,6 +396,8 @@ public sealed class KitsApiTests : IClassFixture<DecorRentalApiFactory>
         string StartDate,
         string EndDate,
         string Status,
+        bool IsStockOverride,
+        string? StockOverrideReason,
         string Message);
 
     private sealed record PagedResponse<TItem>(

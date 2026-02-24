@@ -13,9 +13,16 @@ public class Reservation
     public Guid KitCategoryId { get; private set; }
     public DateRange Period { get; private set; } = null!;
     public ReservationStatus Status { get; private set; }
+    public bool IsStockOverride { get; private set; }
+    public string? StockOverrideReason { get; private set; }
     public IReadOnlyCollection<ReservationItem> Items => _items;
 
-    public static Reservation Create(Guid kitThemeId, KitCategory category, DateRange period)
+    public static Reservation Create(
+        Guid kitThemeId,
+        KitCategory category,
+        DateRange period,
+        bool isStockOverride,
+        string? stockOverrideReason)
     {
         if (category is null)
         {
@@ -32,7 +39,14 @@ public class Reservation
             .Select(categoryItem => new ReservationItem(reservationId, categoryItem.ItemTypeId, categoryItem.Quantity))
             .ToList();
 
-        return new Reservation(reservationId, kitThemeId, category.Id, period, reservationItems);
+        return new Reservation(
+            reservationId,
+            kitThemeId,
+            category.Id,
+            period,
+            reservationItems,
+            isStockOverride,
+            stockOverrideReason);
     }
 
     private Reservation(
@@ -40,11 +54,18 @@ public class Reservation
         Guid kitThemeId,
         Guid kitCategoryId,
         DateRange period,
-        IReadOnlyCollection<ReservationItem> items)
+        IReadOnlyCollection<ReservationItem> items,
+        bool isStockOverride,
+        string? stockOverrideReason)
     {
         if (items.Count == 0)
         {
             throw new DomainException("Reservation must contain at least one item.");
+        }
+
+        if (isStockOverride && string.IsNullOrWhiteSpace(stockOverrideReason))
+        {
+            throw new DomainException("Stock override reason is required.");
         }
 
         Id = reservationId;
@@ -52,6 +73,8 @@ public class Reservation
         KitCategoryId = kitCategoryId;
         Period = period;
         Status = ReservationStatus.Active;
+        IsStockOverride = isStockOverride;
+        StockOverrideReason = isStockOverride ? stockOverrideReason!.Trim() : null;
 
         _items.AddRange(items);
     }

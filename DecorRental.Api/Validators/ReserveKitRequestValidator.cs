@@ -17,5 +17,15 @@ public sealed class ReserveKitRequestValidator : AbstractValidator<ReserveKitReq
             .NotEmpty().WithMessage("EndDate is required.")
             .GreaterThanOrEqualTo(request => request.StartDate)
             .WithMessage("EndDate must be greater than or equal to StartDate.");
+
+        RuleFor(request => request.StockOverrideReason)
+            .NotEmpty()
+            .WithMessage("StockOverrideReason is required when AllowStockOverride is true.")
+            .When(request => request.AllowStockOverride);
+
+        RuleFor(request => request.StockOverrideReason)
+            .MaximumLength(500)
+            .WithMessage("StockOverrideReason must have at most 500 characters.")
+            .When(request => !string.IsNullOrWhiteSpace(request.StockOverrideReason));
     }
 }

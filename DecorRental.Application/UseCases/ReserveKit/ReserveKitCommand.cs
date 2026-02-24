@@ -4,4 +4,6 @@ public sealed record ReserveKitCommand(
     Guid KitThemeId,
     Guid KitCategoryId,
     DateOnly StartDate,
-    DateOnly EndDate);
+    DateOnly EndDate,
+    bool AllowStockOverride,
+    string? StockOverrideReason);

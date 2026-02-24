@@ -15,7 +15,12 @@ public class ReservationTests
         category.AddOrUpdateItem(itemType.Id, 2);
         var period = new DateRange(new DateOnly(2026, 1, 10), new DateOnly(2026, 1, 12));
 
-        var reservation = Reservation.Create(Guid.NewGuid(), category, period);
+        var reservation = Reservation.Create(
+            Guid.NewGuid(),
+            category,
+            period,
+            false,
+            null);
 
         Assert.Equal(ReservationStatus.Active, reservation.Status);
         Assert.Single(reservation.Items);
@@ -29,10 +34,34 @@ public class ReservationTests
         category.AddOrUpdateItem(itemType.Id, 1);
         var period = new DateRange(new DateOnly(2026, 1, 10), new DateOnly(2026, 1, 12));
 
-        var reservation = Reservation.Create(Guid.NewGuid(), category, period);
+        var reservation = Reservation.Create(
+            Guid.NewGuid(),
+            category,
+            period,
+            false,
+            null);
 
         reservation.Cancel();
 
         Assert.Equal(ReservationStatus.Cancelled, reservation.Status);
+    }
+
+    [Fact]
+    public void Reservation_should_store_override_reason_when_enabled()
+    {
+        var itemType = new ItemType("Table", 2);
+        var category = new KitCategory("Basic");
+        category.AddOrUpdateItem(itemType.Id, 1);
+        var period = new DateRange(new DateOnly(2026, 1, 10), new DateOnly(2026, 1, 12));
+
+        var reservation = Reservation.Create(
+            Guid.NewGuid(),
+            category,
+            period,
+            true,
+            "Aprovação manual para exceção.");
+
+        Assert.True(reservation.IsStockOverride);
+        Assert.Equal("Aprovação manual para exceção.", reservation.StockOverrideReason);
     }
 }

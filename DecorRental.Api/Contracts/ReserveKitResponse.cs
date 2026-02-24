@@ -7,4 +7,6 @@ public sealed record ReserveKitResponse(
     DateOnly StartDate,
     DateOnly EndDate,
     string Status,
+    bool IsStockOverride,
+    string? StockOverrideReason,
     string Message);

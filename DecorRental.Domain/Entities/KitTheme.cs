@@ -22,7 +22,11 @@ public class KitTheme
         Name = name.Trim();
     }
 
-    public Reservation Reserve(KitCategory category, DateRange period)
+    public Reservation Reserve(
+        KitCategory category,
+        DateRange period,
+        bool isStockOverride,
+        string? stockOverrideReason)
     {
         if (category is null)
         {
@@ -34,7 +38,12 @@ public class KitTheme
             throw new DomainException("Category must have at least one item.");
         }
 
-        var reservation = Reservation.Create(Id, category, period);
+        var reservation = Reservation.Create(
+            Id,
+            category,
+            period,
+            isStockOverride,
+            stockOverrideReason);
         _reservations.Add(reservation);
 
         return reservation;

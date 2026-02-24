@@ -32,7 +32,9 @@ public class ReserveKitTests
             kitTheme.Id,
             category.Id,
             new DateOnly(2026, 1, 10),
-            new DateOnly(2026, 1, 12));
+            new DateOnly(2026, 1, 12),
+            false,
+            null);
 
         var handler = new ReserveKitHandler(
             kitThemeRepository,
@@ -47,6 +49,8 @@ public class ReserveKitTests
         Assert.Equal(kitTheme.Id, result.KitThemeId);
         Assert.Equal(category.Id, result.KitCategoryId);
         Assert.Equal("Active", result.ReservationStatus);
+        Assert.False(result.IsStockOverride);
+        Assert.Null(result.StockOverrideReason);
         Assert.Single(messageBus.PublishedEvents.OfType<ReservationCreatedEvent>());
     }
 
@@ -78,7 +82,9 @@ public class ReserveKitTests
             kitTheme.Id,
             category.Id,
             new DateOnly(2026, 1, 12),
-            new DateOnly(2026, 1, 14));
+            new DateOnly(2026, 1, 14),
+            false,
+            null);
 
         var handler = new ReserveKitHandler(
             kitThemeRepository,
@@ -88,5 +94,50 @@ public class ReserveKitTests
             messageBus);
 
         await Assert.ThrowsAsync<ConflictException>(() => handler.HandleAsync(command));
+    }
+
+    [Fact]
+    public async Task Should_allow_reserve_with_stock_override_when_reason_is_informed()
+    {
+        var itemType = new ItemType("Arch", 1);
+        var category = new KitCategory("Basic");
+        category.AddOrUpdateItem(itemType.Id, 1);
+        var kitTheme = new KitTheme("Theme");
+
+        var kitThemeRepository = new FakeKitThemeRepository();
+        var categoryRepository = new FakeKitCategoryRepository();
+        var itemTypeRepository = new FakeItemTypeRepository();
+        var reservationQueryRepository = new FakeReservationQueryRepository();
+        var messageBus = new FakeMessageBus();
+
+        reservationQueryRepository.Add(new ActiveReservationItem(
+            itemType.Id,
+            1,
+            new DateOnly(2026, 2, 22),
+            new DateOnly(2026, 2, 24)));
+
+        await kitThemeRepository.AddAsync(kitTheme);
+        await categoryRepository.AddAsync(category);
+        await itemTypeRepository.AddAsync(itemType);
+
+        var command = new ReserveKitCommand(
+            kitTheme.Id,
+            category.Id,
+            new DateOnly(2026, 2, 23),
+            new DateOnly(2026, 2, 24),
+            true,
+            "Cliente recorrente aprovado pela operação.");
+
+        var handler = new ReserveKitHandler(
+            kitThemeRepository,
+            categoryRepository,
+            itemTypeRepository,
+            reservationQueryRepository,
+            messageBus);
+
+        var result = await handler.HandleAsync(command);
+
+        Assert.True(result.IsStockOverride);
+        Assert.Equal("Cliente recorrente aprovado pela operação.", result.StockOverrideReason);
     }
 }

@@ -41,9 +41,20 @@ public sealed class ReserveKitHandler
             ?? throw new NotFoundException("Category not found.");
 
         var period = new DateRange(command.StartDate, command.EndDate);
-        await EnsureStockAvailabilityAsync(category, period, cancellationToken);
+        var stockShortages = await GetStockShortagesAsync(category, period, cancellationToken);
+        if (stockShortages.Count > 0 && !command.AllowStockOverride)
+        {
+            var primaryShortage = stockShortages[0];
+            throw new ConflictException(
+                $"Insufficient stock for item '{primaryShortage.ItemName}' in the selected period.");
+        }
 
-        var reservation = kitTheme.Reserve(category, period);
+        var isStockOverrideEffective = stockShortages.Count > 0 && command.AllowStockOverride;
+        var reservation = kitTheme.Reserve(
+            category,
+            period,
+            isStockOverrideEffective,
+            command.StockOverrideReason);
 
         await _kitThemeRepository.SaveAsync(kitTheme, cancellationToken);
 
@@ -63,10 +74,12 @@ public sealed class ReserveKitHandler
             category.Id,
             reservation.Period.Start,
             reservation.Period.End,
-            reservation.Status.ToString());
+            reservation.Status.ToString(),
+            reservation.IsStockOverride,
+            reservation.StockOverrideReason);
     }
 
-    private async Task EnsureStockAvailabilityAsync(
+    private async Task<IReadOnlyList<StockShortage>> GetStockShortagesAsync(
         KitCategory category,
         DateRange period,
         CancellationToken cancellationToken)
@@ -87,6 +100,7 @@ public sealed class ReserveKitHandler
             itemTypeIds,
             cancellationToken);
 
+        var shortages = new List<StockShortage>();
         foreach (var itemType in itemTypes)
         {
             var requiredQuantity = requestedItemQuantities[itemType.Id];
@@ -95,10 +109,11 @@ public sealed class ReserveKitHandler
 
             if (futureTotal > itemType.TotalStock)
             {
-                throw new ConflictException(
-                    $"Insufficient stock for item '{itemType.Name}' in the selected period.");
+                shortages.Add(new StockShortage(itemType.Name));
             }
         }
+
+        return shortages;
     }
 
     private static int CalculateMaxReservedQuantity(
@@ -146,4 +161,6 @@ public sealed class ReserveKitHandler
 
         return maxReserved;
     }
+
+    private sealed record StockShortage(string ItemName);
 }

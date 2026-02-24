@@ -6,4 +6,6 @@ public sealed record ReserveKitResult(
     Guid KitCategoryId,
     DateOnly StartDate,
     DateOnly EndDate,
-    string ReservationStatus);
+    string ReservationStatus,
+    bool IsStockOverride,
+    string? StockOverrideReason);

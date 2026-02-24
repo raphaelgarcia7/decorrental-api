@@ -18,7 +18,7 @@ public class KitThemeTests
         var kitTheme = new KitTheme("Patrol Theme");
         var period = new DateRange(new DateOnly(2026, 1, 10), new DateOnly(2026, 1, 12));
 
-        var reservation = kitTheme.Reserve(category, period);
+        var reservation = kitTheme.Reserve(category, period, false, null);
 
         Assert.Single(kitTheme.Reservations);
         Assert.Equal(category.Id, reservation.KitCategoryId);
@@ -36,10 +36,10 @@ public class KitThemeTests
         var kitTheme = new KitTheme("Patrol Theme");
         var period = new DateRange(new DateOnly(2026, 1, 10), new DateOnly(2026, 1, 12));
 
-        var reservation = kitTheme.Reserve(category, period);
+        var reservation = kitTheme.Reserve(category, period, false, null);
 
         kitTheme.CancelReservation(reservation.Id);
-        kitTheme.Reserve(category, period);
+        kitTheme.Reserve(category, period, false, null);
 
         Assert.Equal(2, kitTheme.Reservations.Count);
         Assert.Single(kitTheme.Reservations, currentReservation => currentReservation.Status == ReservationStatus.Active);
