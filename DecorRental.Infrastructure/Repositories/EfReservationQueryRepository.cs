@@ -28,7 +28,7 @@ public sealed class EfReservationQueryRepository : IReservationQueryRepository
         var rows = await _context.Reservations
             .AsNoTracking()
             .Where(reservation => reservation.Status == ReservationStatus.Active)
-            .Where(reservation => reservation.Period.Start <= requestEndDate && reservation.Period.End >= requestStartDate)
+            .Where(reservation => reservation.Period.Start < requestEndDate && reservation.Period.End > requestStartDate)
             .SelectMany(
                 reservation => reservation.Items,
                 (reservation, reservationItem) => new

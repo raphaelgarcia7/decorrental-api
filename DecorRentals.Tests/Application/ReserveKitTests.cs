@@ -81,7 +81,7 @@ public class ReserveKitTests
         var command = new ReserveKitCommand(
             kitTheme.Id,
             category.Id,
-            new DateOnly(2026, 1, 12),
+            new DateOnly(2026, 1, 11),
             new DateOnly(2026, 1, 14),
             false,
             null);

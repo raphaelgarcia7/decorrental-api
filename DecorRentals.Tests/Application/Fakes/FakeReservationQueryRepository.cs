@@ -14,7 +14,7 @@ public sealed class FakeReservationQueryRepository : IReservationQueryRepository
     {
         var items = _items
             .Where(item => itemTypeIds.Contains(item.ItemTypeId))
-            .Where(item => item.StartDate <= requestEndDate && item.EndDate >= requestStartDate)
+            .Where(item => item.StartDate < requestEndDate && item.EndDate > requestStartDate)
             .ToList();
 
         return Task.FromResult<IReadOnlyList<ActiveReservationItem>>(items);
