@@ -183,6 +183,31 @@ public sealed class KitsApiTests : IClassFixture<DecorRentalApiFactory>
     }
 
     [Fact]
+    public async Task Reserve_endpoint_should_allow_reservation_when_periods_only_touch_at_boundary()
+    {
+        await AuthenticateAsManagerAsync();
+
+        var categoryId = await CreateCategoryWithItemAsync("Basic", "Roman Arc", 1, 1);
+        var firstThemeId = await CreateKitAsync("Turma da Monica");
+        var secondThemeId = await CreateKitAsync("Paw Patrol");
+
+        var firstReserveResponse = await _httpClient.PostAsJsonAsync(
+            $"/api/kits/{firstThemeId}/reservations",
+            new ReserveKitRequest(categoryId, "2026-02-22", "2026-02-24"));
+        firstReserveResponse.EnsureSuccessStatusCode();
+
+        var secondReserveResponse = await _httpClient.PostAsJsonAsync(
+            $"/api/kits/{secondThemeId}/reservations",
+            new ReserveKitRequest(categoryId, "2026-02-24", "2026-02-26"));
+        secondReserveResponse.EnsureSuccessStatusCode();
+
+        var secondReservePayload = await secondReserveResponse.Content.ReadFromJsonAsync<ReserveKitResponse>();
+        Assert.NotNull(secondReservePayload);
+        Assert.False(secondReservePayload.IsStockOverride);
+        Assert.Null(secondReservePayload.StockOverrideReason);
+    }
+
+    [Fact]
     public async Task Reserve_endpoint_should_allow_stock_override_when_reason_is_provided()
     {
         await AuthenticateAsManagerAsync();
