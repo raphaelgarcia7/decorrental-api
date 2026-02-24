@@ -35,10 +35,10 @@ public sealed class ReserveKitHandler
         CancellationToken cancellationToken = default)
     {
         var kitTheme = await _kitThemeRepository.GetByIdAsync(command.KitThemeId, cancellationToken)
-            ?? throw new NotFoundException("Kit theme not found.");
+            ?? throw new NotFoundException("Tema de kit nao encontrado.");
 
         var category = await _categoryRepository.GetByIdAsync(command.KitCategoryId, cancellationToken)
-            ?? throw new NotFoundException("Category not found.");
+            ?? throw new NotFoundException("Categoria nao encontrada.");
 
         var period = new DateRange(command.StartDate, command.EndDate);
         var stockShortages = await GetStockShortagesAsync(category, period, cancellationToken);
@@ -46,7 +46,7 @@ public sealed class ReserveKitHandler
         {
             var primaryShortage = stockShortages[0];
             throw new ConflictException(
-                $"Insufficient stock for item '{primaryShortage.ItemName}' in the selected period.");
+                $"Estoque insuficiente para o item '{primaryShortage.ItemName}' no periodo selecionado.");
         }
 
         var isStockOverrideEffective = stockShortages.Count > 0 && command.AllowStockOverride;
@@ -91,7 +91,7 @@ public sealed class ReserveKitHandler
         var itemTypes = await _itemTypeRepository.GetByIdsAsync(itemTypeIds, cancellationToken);
         if (itemTypes.Count != itemTypeIds.Length)
         {
-            throw new DomainException("Category references unknown item types.");
+            throw new DomainException("A categoria referencia tipos de item desconhecidos.");
         }
 
         var activeReservations = await _reservationQueryRepository.GetActiveReservationItemsAsync(

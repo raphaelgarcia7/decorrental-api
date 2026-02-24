@@ -18,10 +18,10 @@ public sealed class AddCategoryItemHandler
     public async Task<KitCategory> HandleAsync(AddCategoryItemCommand command, CancellationToken cancellationToken = default)
     {
         var category = await _categoryRepository.GetByIdAsync(command.CategoryId, cancellationToken)
-            ?? throw new NotFoundException("Category not found.");
+            ?? throw new NotFoundException("Categoria nao encontrada.");
 
         var itemType = await _itemTypeRepository.GetByIdAsync(command.ItemTypeId, cancellationToken)
-            ?? throw new NotFoundException("Item type not found.");
+            ?? throw new NotFoundException("Tipo de item nao encontrado.");
 
         _ = itemType;
         category.AddOrUpdateItem(command.ItemTypeId, command.Quantity);

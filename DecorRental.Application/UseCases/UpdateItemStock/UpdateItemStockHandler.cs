@@ -16,7 +16,7 @@ public sealed class UpdateItemStockHandler
     public async Task<ItemType> HandleAsync(UpdateItemStockCommand command, CancellationToken cancellationToken = default)
     {
         var itemType = await _repository.GetByIdAsync(command.ItemTypeId, cancellationToken)
-            ?? throw new NotFoundException("Item type not found.");
+            ?? throw new NotFoundException("Tipo de item nao encontrado.");
 
         itemType.UpdateStock(command.TotalStock);
         await _repository.SaveAsync(itemType, cancellationToken);

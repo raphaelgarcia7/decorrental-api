@@ -15,7 +15,7 @@ public class KitTheme
     {
         if (string.IsNullOrWhiteSpace(name))
         {
-            throw new DomainException("Kit theme name is required.");
+            throw new DomainException("O nome do tema do kit e obrigatorio.");
         }
 
         Id = Guid.NewGuid();
@@ -30,7 +30,7 @@ public class KitTheme
     {
         if (category is null)
         {
-            throw new DomainException("Category is required.");
+            throw new DomainException("Categoria e obrigatoria.");
         }
 
         if (category.Items.Count == 0)
@@ -54,7 +54,7 @@ public class KitTheme
         var reservation = _reservations.FirstOrDefault(currentReservation => currentReservation.Id == reservationId);
         if (reservation is null)
         {
-            throw new DomainException("Reservation not found for this kit theme.");
+            throw new DomainException("Reserva nao encontrada para este tema de kit.");
         }
 
         reservation.Cancel();

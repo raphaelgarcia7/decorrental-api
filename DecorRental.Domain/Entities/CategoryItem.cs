@@ -13,7 +13,7 @@ public class CategoryItem
     {
         if (quantity <= 0)
         {
-            throw new DomainException("Category item quantity must be greater than zero.");
+            throw new DomainException("A quantidade do item da categoria deve ser maior que zero.");
         }
 
         Id = Guid.NewGuid();
@@ -26,7 +26,7 @@ public class CategoryItem
     {
         if (quantity <= 0)
         {
-            throw new DomainException("Category item quantity must be greater than zero.");
+            throw new DomainException("A quantidade do item da categoria deve ser maior que zero.");
         }
 
         Quantity = quantity;

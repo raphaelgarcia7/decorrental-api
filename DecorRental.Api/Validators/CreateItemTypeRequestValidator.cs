@@ -8,10 +8,10 @@ public sealed class CreateItemTypeRequestValidator : AbstractValidator<CreateIte
     public CreateItemTypeRequestValidator()
     {
         RuleFor(request => request.Name)
-            .NotEmpty().WithMessage("Name is required.")
+            .NotEmpty().WithMessage("Nome e obrigatorio.")
             .MaximumLength(120).WithMessage("Name must have at most 120 characters.");
 
         RuleFor(request => request.TotalStock)
-            .GreaterThanOrEqualTo(0).WithMessage("TotalStock must be zero or greater.");
+            .GreaterThanOrEqualTo(0).WithMessage("TotalStock deve ser zero ou maior.");
     }
 }

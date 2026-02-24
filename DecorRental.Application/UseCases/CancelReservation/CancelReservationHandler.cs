@@ -21,12 +21,12 @@ public sealed class CancelReservationHandler
         CancellationToken cancellationToken = default)
     {
         var kitTheme = await _repository.GetByIdAsync(command.KitThemeId, cancellationToken)
-            ?? throw new NotFoundException("Kit theme not found.");
+            ?? throw new NotFoundException("Tema de kit nao encontrado.");
 
         var hasReservation = kitTheme.Reservations.Any(reservation => reservation.Id == command.ReservationId);
         if (!hasReservation)
         {
-            throw new NotFoundException("Reservation not found.");
+            throw new NotFoundException("Reserva nao encontrada.");
         }
 
         var reservation = kitTheme.CancelReservation(command.ReservationId);
