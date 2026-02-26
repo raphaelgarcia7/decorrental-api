@@ -6,6 +6,11 @@ namespace DecorRental.Domain.Entities;
 
 public class Reservation
 {
+    private const int CustomerNameMaxLength = 120;
+    private const int CustomerDocumentNumberMaxLength = 40;
+    private const int CustomerAddressMaxLength = 250;
+    private const int NotesMaxLength = 500;
+
     private readonly List<ReservationItem> _items = new();
 
     public Guid Id { get; private set; }
@@ -15,6 +20,11 @@ public class Reservation
     public ReservationStatus Status { get; private set; }
     public bool IsStockOverride { get; private set; }
     public string? StockOverrideReason { get; private set; }
+    public string CustomerName { get; private set; } = null!;
+    public string CustomerDocumentNumber { get; private set; } = null!;
+    public string CustomerAddress { get; private set; } = null!;
+    public string? Notes { get; private set; }
+    public bool HasBalloonArch { get; private set; }
     public IReadOnlyCollection<ReservationItem> Items => _items;
 
     public static Reservation Create(
@@ -22,7 +32,12 @@ public class Reservation
         KitCategory category,
         DateRange period,
         bool isStockOverride,
-        string? stockOverrideReason)
+        string? stockOverrideReason,
+        string customerName,
+        string customerDocumentNumber,
+        string customerAddress,
+        string? notes,
+        bool hasBalloonArch)
     {
         if (category is null)
         {
@@ -46,7 +61,12 @@ public class Reservation
             period,
             reservationItems,
             isStockOverride,
-            stockOverrideReason);
+            stockOverrideReason,
+            customerName,
+            customerDocumentNumber,
+            customerAddress,
+            notes,
+            hasBalloonArch);
     }
 
     private Reservation(
@@ -56,7 +76,12 @@ public class Reservation
         DateRange period,
         IReadOnlyCollection<ReservationItem> items,
         bool isStockOverride,
-        string? stockOverrideReason)
+        string? stockOverrideReason,
+        string customerName,
+        string customerDocumentNumber,
+        string customerAddress,
+        string? notes,
+        bool hasBalloonArch)
     {
         if (items.Count == 0)
         {
@@ -68,6 +93,41 @@ public class Reservation
             throw new DomainException("O motivo do override de estoque e obrigatorio.");
         }
 
+        if (string.IsNullOrWhiteSpace(customerName))
+        {
+            throw new DomainException("O nome do cliente e obrigatorio.");
+        }
+
+        if (customerName.Length > CustomerNameMaxLength)
+        {
+            throw new DomainException($"O nome do cliente deve ter no maximo {CustomerNameMaxLength} caracteres.");
+        }
+
+        if (string.IsNullOrWhiteSpace(customerDocumentNumber))
+        {
+            throw new DomainException("O documento do cliente e obrigatorio.");
+        }
+
+        if (customerDocumentNumber.Length > CustomerDocumentNumberMaxLength)
+        {
+            throw new DomainException($"O documento do cliente deve ter no maximo {CustomerDocumentNumberMaxLength} caracteres.");
+        }
+
+        if (string.IsNullOrWhiteSpace(customerAddress))
+        {
+            throw new DomainException("O endereco do cliente e obrigatorio.");
+        }
+
+        if (customerAddress.Length > CustomerAddressMaxLength)
+        {
+            throw new DomainException($"O endereco do cliente deve ter no maximo {CustomerAddressMaxLength} caracteres.");
+        }
+
+        if (!string.IsNullOrWhiteSpace(notes) && notes.Length > NotesMaxLength)
+        {
+            throw new DomainException($"As observacoes devem ter no maximo {NotesMaxLength} caracteres.");
+        }
+
         Id = reservationId;
         KitThemeId = kitThemeId;
         KitCategoryId = kitCategoryId;
@@ -75,6 +135,11 @@ public class Reservation
         Status = ReservationStatus.Active;
         IsStockOverride = isStockOverride;
         StockOverrideReason = isStockOverride ? stockOverrideReason!.Trim() : null;
+        CustomerName = customerName.Trim();
+        CustomerDocumentNumber = customerDocumentNumber.Trim();
+        CustomerAddress = customerAddress.Trim();
+        Notes = string.IsNullOrWhiteSpace(notes) ? null : notes.Trim();
+        HasBalloonArch = hasBalloonArch;
 
         _items.AddRange(items);
     }

@@ -1,4 +1,4 @@
-using DecorRental.Domain.Entities;
+﻿using DecorRental.Domain.Entities;
 using DecorRental.Domain.Enums;
 using DecorRental.Domain.ValueObjects;
 using Xunit;
@@ -20,10 +20,20 @@ public class ReservationTests
             category,
             period,
             false,
-            null);
+            null,
+            "Maria Silva",
+            "12345678900",
+            "Rua das Flores, 123",
+            "Cliente recorrente.",
+            true);
 
         Assert.Equal(ReservationStatus.Active, reservation.Status);
         Assert.Single(reservation.Items);
+        Assert.Equal("Maria Silva", reservation.CustomerName);
+        Assert.Equal("12345678900", reservation.CustomerDocumentNumber);
+        Assert.Equal("Rua das Flores, 123", reservation.CustomerAddress);
+        Assert.Equal("Cliente recorrente.", reservation.Notes);
+        Assert.True(reservation.HasBalloonArch);
     }
 
     [Fact]
@@ -39,7 +49,12 @@ public class ReservationTests
             category,
             period,
             false,
-            null);
+            null,
+            "Joao Souza",
+            "98765432100",
+            "Av. Brasil, 456",
+            null,
+            false);
 
         reservation.Cancel();
 
@@ -59,9 +74,19 @@ public class ReservationTests
             category,
             period,
             true,
-            "Aprovação manual para exceção.");
+            "Aprovacao manual para excecao.",
+            "Ana Lima",
+            "11222333444",
+            "Rua Central, 789",
+            "Reserva com falta parcial de itens.",
+            false);
 
         Assert.True(reservation.IsStockOverride);
-        Assert.Equal("Aprovação manual para exceção.", reservation.StockOverrideReason);
+        Assert.Equal("Aprovacao manual para excecao.", reservation.StockOverrideReason);
+        Assert.Equal("Ana Lima", reservation.CustomerName);
+        Assert.Equal("11222333444", reservation.CustomerDocumentNumber);
+        Assert.Equal("Rua Central, 789", reservation.CustomerAddress);
+        Assert.Equal("Reserva com falta parcial de itens.", reservation.Notes);
+        Assert.False(reservation.HasBalloonArch);
     }
 }

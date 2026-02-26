@@ -125,6 +125,8 @@ public sealed class KitsApiTests : IClassFixture<DecorRentalApiFactory>
         Assert.Equal(kitId, reserveResponse.KitThemeId);
         Assert.Equal(categoryId, reserveResponse.KitCategoryId);
         Assert.Equal("Active", reserveResponse.Status);
+        Assert.Equal("Cliente Teste", reserveResponse.CustomerName);
+        Assert.Equal("12345678900", reserveResponse.CustomerDocumentNumber);
 
         var reservationsResponse = await _httpClient.GetAsync($"/api/kits/{kitId}/reservations");
         var reservations = await reservationsResponse.Content.ReadFromJsonAsync<List<ReservationResponse>>();
@@ -133,6 +135,7 @@ public sealed class KitsApiTests : IClassFixture<DecorRentalApiFactory>
         Assert.NotNull(reservations);
         Assert.Single(reservations);
         Assert.Equal(categoryId, reservations[0].KitCategoryId);
+        Assert.Equal("Cliente Teste", reservations[0].CustomerName);
     }
 
     [Fact]
@@ -383,7 +386,12 @@ public sealed class KitsApiTests : IClassFixture<DecorRentalApiFactory>
         string StartDate,
         string EndDate,
         bool AllowStockOverride = false,
-        string? StockOverrideReason = null);
+        string? StockOverrideReason = null,
+        string CustomerName = "Cliente Teste",
+        string CustomerDocumentNumber = "12345678900",
+        string CustomerAddress = "Rua Teste, 100",
+        string? Notes = "Reserva criada por teste automatizado.",
+        bool HasBalloonArch = false);
 
     private sealed record AuthTokenRequest(string Username, string Password);
 
@@ -412,7 +420,12 @@ public sealed class KitsApiTests : IClassFixture<DecorRentalApiFactory>
         string EndDate,
         string Status,
         bool IsStockOverride,
-        string? StockOverrideReason);
+        string? StockOverrideReason,
+        string CustomerName,
+        string CustomerDocumentNumber,
+        string CustomerAddress,
+        string? Notes,
+        bool HasBalloonArch);
 
     private sealed record ReserveKitResponse(
         Guid ReservationId,
@@ -423,6 +436,11 @@ public sealed class KitsApiTests : IClassFixture<DecorRentalApiFactory>
         string Status,
         bool IsStockOverride,
         string? StockOverrideReason,
+        string CustomerName,
+        string CustomerDocumentNumber,
+        string CustomerAddress,
+        string? Notes,
+        bool HasBalloonArch,
         string Message);
 
     private sealed record PagedResponse<TItem>(

@@ -6,4 +6,9 @@ public sealed record ReserveKitCommand(
     DateOnly StartDate,
     DateOnly EndDate,
     bool AllowStockOverride,
-    string? StockOverrideReason);
+    string? StockOverrideReason,
+    string CustomerName,
+    string CustomerDocumentNumber,
+    string CustomerAddress,
+    string? Notes,
+    bool HasBalloonArch);

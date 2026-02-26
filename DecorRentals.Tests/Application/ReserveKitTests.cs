@@ -1,4 +1,4 @@
-using DecorRental.Application.IntegrationEvents;
+﻿using DecorRental.Application.IntegrationEvents;
 using DecorRental.Application.UseCases.ReserveKit;
 using DecorRental.Domain.Entities;
 using DecorRental.Domain.Exceptions;
@@ -34,7 +34,12 @@ public class ReserveKitTests
             new DateOnly(2026, 1, 10),
             new DateOnly(2026, 1, 12),
             false,
-            null);
+            null,
+            "Gabriela Costa",
+            "11122233344",
+            "Rua das Palmeiras, 88",
+            "Entrega em condominio.",
+            true);
 
         var handler = new ReserveKitHandler(
             kitThemeRepository,
@@ -51,6 +56,11 @@ public class ReserveKitTests
         Assert.Equal("Active", result.ReservationStatus);
         Assert.False(result.IsStockOverride);
         Assert.Null(result.StockOverrideReason);
+        Assert.Equal("Gabriela Costa", result.CustomerName);
+        Assert.Equal("11122233344", result.CustomerDocumentNumber);
+        Assert.Equal("Rua das Palmeiras, 88", result.CustomerAddress);
+        Assert.Equal("Entrega em condominio.", result.Notes);
+        Assert.True(result.HasBalloonArch);
         Assert.Single(messageBus.PublishedEvents.OfType<ReservationCreatedEvent>());
     }
 
@@ -84,7 +94,12 @@ public class ReserveKitTests
             new DateOnly(2026, 1, 11),
             new DateOnly(2026, 1, 14),
             false,
-            null);
+            null,
+            "Ricardo Souza",
+            "99888777666",
+            "Rua Augusta, 100",
+            null,
+            false);
 
         var handler = new ReserveKitHandler(
             kitThemeRepository,
@@ -126,7 +141,12 @@ public class ReserveKitTests
             new DateOnly(2026, 2, 23),
             new DateOnly(2026, 2, 24),
             true,
-            "Cliente recorrente aprovado pela operação.");
+            "Cliente recorrente aprovado pela operacao.",
+            "Monica Santos",
+            "12398745600",
+            "Rua C, 400",
+            "Montagem no fim da tarde.",
+            false);
 
         var handler = new ReserveKitHandler(
             kitThemeRepository,
@@ -138,6 +158,6 @@ public class ReserveKitTests
         var result = await handler.HandleAsync(command);
 
         Assert.True(result.IsStockOverride);
-        Assert.Equal("Cliente recorrente aprovado pela operação.", result.StockOverrideReason);
+        Assert.Equal("Cliente recorrente aprovado pela operacao.", result.StockOverrideReason);
     }
 }

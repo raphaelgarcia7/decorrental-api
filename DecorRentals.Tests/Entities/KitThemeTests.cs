@@ -1,4 +1,4 @@
-using DecorRental.Domain.Entities;
+﻿using DecorRental.Domain.Entities;
 using DecorRental.Domain.Enums;
 using DecorRental.Domain.Exceptions;
 using DecorRental.Domain.ValueObjects;
@@ -18,7 +18,16 @@ public class KitThemeTests
         var kitTheme = new KitTheme("Patrol Theme");
         var period = new DateRange(new DateOnly(2026, 1, 10), new DateOnly(2026, 1, 12));
 
-        var reservation = kitTheme.Reserve(category, period, false, null);
+        var reservation = kitTheme.Reserve(
+            category,
+            period,
+            false,
+            null,
+            "Carla Nunes",
+            "12312312399",
+            "Rua A, 10",
+            null,
+            false);
 
         Assert.Single(kitTheme.Reservations);
         Assert.Equal(category.Id, reservation.KitCategoryId);
@@ -36,10 +45,28 @@ public class KitThemeTests
         var kitTheme = new KitTheme("Patrol Theme");
         var period = new DateRange(new DateOnly(2026, 1, 10), new DateOnly(2026, 1, 12));
 
-        var reservation = kitTheme.Reserve(category, period, false, null);
+        var reservation = kitTheme.Reserve(
+            category,
+            period,
+            false,
+            null,
+            "Rodrigo Lima",
+            "98711122233",
+            "Av. B, 20",
+            "Entrega no periodo da manha.",
+            true);
 
         kitTheme.CancelReservation(reservation.Id);
-        kitTheme.Reserve(category, period, false, null);
+        kitTheme.Reserve(
+            category,
+            period,
+            false,
+            null,
+            "Rodrigo Lima",
+            "98711122233",
+            "Av. B, 20",
+            null,
+            false);
 
         Assert.Equal(2, kitTheme.Reservations.Count);
         Assert.Single(kitTheme.Reservations, currentReservation => currentReservation.Status == ReservationStatus.Active);
