@@ -20,6 +20,24 @@ public sealed class ReservationConfiguration : IEntityTypeConfiguration<Reservat
         builder.Property(reservation => reservation.StockOverrideReason)
             .HasMaxLength(500);
 
+        builder.Property(reservation => reservation.CustomerName)
+            .IsRequired()
+            .HasMaxLength(120);
+
+        builder.Property(reservation => reservation.CustomerDocumentNumber)
+            .IsRequired()
+            .HasMaxLength(40);
+
+        builder.Property(reservation => reservation.CustomerAddress)
+            .IsRequired()
+            .HasMaxLength(250);
+
+        builder.Property(reservation => reservation.Notes)
+            .HasMaxLength(500);
+
+        builder.Property(reservation => reservation.HasBalloonArch)
+            .IsRequired();
+
         builder.HasOne<KitCategory>()
             .WithMany()
             .HasForeignKey(reservation => reservation.KitCategoryId)

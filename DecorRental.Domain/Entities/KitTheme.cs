@@ -26,7 +26,12 @@ public class KitTheme
         KitCategory category,
         DateRange period,
         bool isStockOverride,
-        string? stockOverrideReason)
+        string? stockOverrideReason,
+        string customerName,
+        string customerDocumentNumber,
+        string customerAddress,
+        string? notes,
+        bool hasBalloonArch)
     {
         if (category is null)
         {
@@ -43,7 +48,12 @@ public class KitTheme
             category,
             period,
             isStockOverride,
-            stockOverrideReason);
+            stockOverrideReason,
+            customerName,
+            customerDocumentNumber,
+            customerAddress,
+            notes,
+            hasBalloonArch);
         _reservations.Add(reservation);
 
         return reservation;

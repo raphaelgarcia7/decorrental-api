@@ -84,7 +84,12 @@ public class KitsController : ControllerBase
                 reservation.Period.End,
                 reservation.Status.ToString(),
                 reservation.IsStockOverride,
-                reservation.StockOverrideReason))
+                reservation.StockOverrideReason,
+                reservation.CustomerName,
+                reservation.CustomerDocumentNumber,
+                reservation.CustomerAddress,
+                reservation.Notes,
+                reservation.HasBalloonArch))
             .ToList();
 
         return Ok(response);
@@ -101,7 +106,12 @@ public class KitsController : ControllerBase
             request.StartDate,
             request.EndDate,
             request.AllowStockOverride,
-            request.StockOverrideReason);
+            request.StockOverrideReason,
+            request.CustomerName,
+            request.CustomerDocumentNumber,
+            request.CustomerAddress,
+            request.Notes,
+            request.HasBalloonArch);
 
         var result = await _reserveHandler.HandleAsync(command, cancellationToken);
         var response = new ReserveKitResponse(
@@ -113,6 +123,11 @@ public class KitsController : ControllerBase
             result.ReservationStatus,
             result.IsStockOverride,
             result.StockOverrideReason,
+            result.CustomerName,
+            result.CustomerDocumentNumber,
+            result.CustomerAddress,
+            result.Notes,
+            result.HasBalloonArch,
             "Reserva criada com sucesso.");
 
         return Ok(response);
@@ -146,7 +161,12 @@ public class KitsController : ControllerBase
                 reservation.Period.End,
                 reservation.Status.ToString(),
                 reservation.IsStockOverride,
-                reservation.StockOverrideReason))
+                reservation.StockOverrideReason,
+                reservation.CustomerName,
+                reservation.CustomerDocumentNumber,
+                reservation.CustomerAddress,
+                reservation.Notes,
+                reservation.HasBalloonArch))
             .ToList();
 
         return new KitDetailResponse(kitTheme.Id, kitTheme.Name, reservations);

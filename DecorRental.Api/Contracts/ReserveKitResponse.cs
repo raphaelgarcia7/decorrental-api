@@ -9,4 +9,9 @@ public sealed record ReserveKitResponse(
     string Status,
     bool IsStockOverride,
     string? StockOverrideReason,
+    string CustomerName,
+    string CustomerDocumentNumber,
+    string CustomerAddress,
+    string? Notes,
+    bool HasBalloonArch,
     string Message);

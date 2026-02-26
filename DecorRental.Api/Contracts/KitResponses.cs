@@ -9,7 +9,12 @@ public sealed record ReservationResponse(
     DateOnly EndDate,
     string Status,
     bool IsStockOverride,
-    string? StockOverrideReason);
+    string? StockOverrideReason,
+    string CustomerName,
+    string CustomerDocumentNumber,
+    string CustomerAddress,
+    string? Notes,
+    bool HasBalloonArch);
 
 public sealed record KitDetailResponse(
     Guid Id,

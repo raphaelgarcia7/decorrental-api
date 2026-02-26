@@ -27,5 +27,22 @@ public sealed class ReserveKitRequestValidator : AbstractValidator<ReserveKitReq
             .MaximumLength(500)
             .WithMessage("StockOverrideReason deve ter no maximo 500 caracteres.")
             .When(request => !string.IsNullOrWhiteSpace(request.StockOverrideReason));
+
+        RuleFor(request => request.CustomerName)
+            .NotEmpty().WithMessage("CustomerName e obrigatorio.")
+            .MaximumLength(120).WithMessage("CustomerName deve ter no maximo 120 caracteres.");
+
+        RuleFor(request => request.CustomerDocumentNumber)
+            .NotEmpty().WithMessage("CustomerDocumentNumber e obrigatorio.")
+            .MaximumLength(40).WithMessage("CustomerDocumentNumber deve ter no maximo 40 caracteres.");
+
+        RuleFor(request => request.CustomerAddress)
+            .NotEmpty().WithMessage("CustomerAddress e obrigatorio.")
+            .MaximumLength(250).WithMessage("CustomerAddress deve ter no maximo 250 caracteres.");
+
+        RuleFor(request => request.Notes)
+            .MaximumLength(500)
+            .WithMessage("Notes deve ter no maximo 500 caracteres.")
+            .When(request => !string.IsNullOrWhiteSpace(request.Notes));
     }
 }

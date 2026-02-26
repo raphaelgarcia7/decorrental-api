@@ -23,7 +23,12 @@ public class CancelReservationTests
             category,
             new DateRange(new DateOnly(2026, 1, 10), new DateOnly(2026, 1, 12)),
             false,
-            null);
+            null,
+            "Cliente Teste",
+            "12345678900",
+            "Rua Teste, 100",
+            null,
+            false);
 
         var repository = new FakeKitThemeRepository();
         var messageBus = new FakeMessageBus();

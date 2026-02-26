@@ -8,4 +8,9 @@ public sealed record ReserveKitResult(
     DateOnly EndDate,
     string ReservationStatus,
     bool IsStockOverride,
-    string? StockOverrideReason);
+    string? StockOverrideReason,
+    string CustomerName,
+    string CustomerDocumentNumber,
+    string CustomerAddress,
+    string? Notes,
+    bool HasBalloonArch);
