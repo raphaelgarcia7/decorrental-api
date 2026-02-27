@@ -9,6 +9,8 @@ public sealed record ReserveKitCommand(
     string? StockOverrideReason,
     string CustomerName,
     string CustomerDocumentNumber,
+    string CustomerPhoneNumber,
     string CustomerAddress,
     string? Notes,
-    bool HasBalloonArch);
+    bool HasBalloonArch,
+    bool IsEntryPaid);

@@ -87,9 +87,11 @@ public class KitsController : ControllerBase
                 reservation.StockOverrideReason,
                 reservation.CustomerName,
                 reservation.CustomerDocumentNumber,
+                reservation.CustomerPhoneNumber,
                 reservation.CustomerAddress,
                 reservation.Notes,
-                reservation.HasBalloonArch))
+                reservation.HasBalloonArch,
+                reservation.IsEntryPaid))
             .ToList();
 
         return Ok(response);
@@ -109,9 +111,11 @@ public class KitsController : ControllerBase
             request.StockOverrideReason,
             request.CustomerName,
             request.CustomerDocumentNumber,
+            request.CustomerPhoneNumber,
             request.CustomerAddress,
             request.Notes,
-            request.HasBalloonArch);
+            request.HasBalloonArch,
+            request.IsEntryPaid);
 
         var result = await _reserveHandler.HandleAsync(command, cancellationToken);
         var response = new ReserveKitResponse(
@@ -125,9 +129,11 @@ public class KitsController : ControllerBase
             result.StockOverrideReason,
             result.CustomerName,
             result.CustomerDocumentNumber,
+            result.CustomerPhoneNumber,
             result.CustomerAddress,
             result.Notes,
             result.HasBalloonArch,
+            result.IsEntryPaid,
             "Reserva criada com sucesso.");
 
         return Ok(response);
@@ -164,9 +170,11 @@ public class KitsController : ControllerBase
                 reservation.StockOverrideReason,
                 reservation.CustomerName,
                 reservation.CustomerDocumentNumber,
+                reservation.CustomerPhoneNumber,
                 reservation.CustomerAddress,
                 reservation.Notes,
-                reservation.HasBalloonArch))
+                reservation.HasBalloonArch,
+                reservation.IsEntryPaid))
             .ToList();
 
         return new KitDetailResponse(kitTheme.Id, kitTheme.Name, reservations);

@@ -57,9 +57,11 @@ public sealed class ReserveKitHandler
             command.StockOverrideReason,
             command.CustomerName,
             command.CustomerDocumentNumber,
+            command.CustomerPhoneNumber,
             command.CustomerAddress,
             command.Notes,
-            command.HasBalloonArch);
+            command.HasBalloonArch,
+            command.IsEntryPaid);
 
         await _kitThemeRepository.SaveAsync(kitTheme, cancellationToken);
 
@@ -84,9 +86,11 @@ public sealed class ReserveKitHandler
             reservation.StockOverrideReason,
             reservation.CustomerName,
             reservation.CustomerDocumentNumber,
+            reservation.CustomerPhoneNumber,
             reservation.CustomerAddress,
             reservation.Notes,
-            reservation.HasBalloonArch);
+            reservation.HasBalloonArch,
+            reservation.IsEntryPaid);
     }
 
     private async Task<IReadOnlyList<StockShortage>> GetStockShortagesAsync(

@@ -29,9 +29,11 @@ public class KitTheme
         string? stockOverrideReason,
         string customerName,
         string customerDocumentNumber,
+        string customerPhoneNumber,
         string customerAddress,
         string? notes,
-        bool hasBalloonArch)
+        bool hasBalloonArch,
+        bool isEntryPaid)
     {
         if (category is null)
         {
@@ -51,9 +53,11 @@ public class KitTheme
             stockOverrideReason,
             customerName,
             customerDocumentNumber,
+            customerPhoneNumber,
             customerAddress,
             notes,
-            hasBalloonArch);
+            hasBalloonArch,
+            isEntryPaid);
         _reservations.Add(reservation);
 
         return reservation;

@@ -37,8 +37,10 @@ public class ReserveKitTests
             null,
             "Gabriela Costa",
             "11122233344",
+            "12988887777",
             "Rua das Palmeiras, 88",
             "Entrega em condominio.",
+            true,
             true);
 
         var handler = new ReserveKitHandler(
@@ -58,9 +60,11 @@ public class ReserveKitTests
         Assert.Null(result.StockOverrideReason);
         Assert.Equal("Gabriela Costa", result.CustomerName);
         Assert.Equal("11122233344", result.CustomerDocumentNumber);
+        Assert.Equal("12988887777", result.CustomerPhoneNumber);
         Assert.Equal("Rua das Palmeiras, 88", result.CustomerAddress);
         Assert.Equal("Entrega em condominio.", result.Notes);
         Assert.True(result.HasBalloonArch);
+        Assert.True(result.IsEntryPaid);
         Assert.Single(messageBus.PublishedEvents.OfType<ReservationCreatedEvent>());
     }
 
@@ -97,8 +101,10 @@ public class ReserveKitTests
             null,
             "Ricardo Souza",
             "99888777666",
+            "11998887766",
             "Rua Augusta, 100",
             null,
+            false,
             false);
 
         var handler = new ReserveKitHandler(
@@ -144,8 +150,10 @@ public class ReserveKitTests
             "Cliente recorrente aprovado pela operacao.",
             "Monica Santos",
             "12398745600",
+            "21991234567",
             "Rua C, 400",
             "Montagem no fim da tarde.",
+            false,
             false);
 
         var handler = new ReserveKitHandler(

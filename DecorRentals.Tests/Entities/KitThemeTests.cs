@@ -25,8 +25,10 @@ public class KitThemeTests
             null,
             "Carla Nunes",
             "12312312399",
+            "12991112222",
             "Rua A, 10",
             null,
+            false,
             false);
 
         Assert.Single(kitTheme.Reservations);
@@ -52,9 +54,11 @@ public class KitThemeTests
             null,
             "Rodrigo Lima",
             "98711122233",
+            "11987654321",
             "Av. B, 20",
             "Entrega no periodo da manha.",
-            true);
+            true,
+            false);
 
         kitTheme.CancelReservation(reservation.Id);
         kitTheme.Reserve(
@@ -64,9 +68,11 @@ public class KitThemeTests
             null,
             "Rodrigo Lima",
             "98711122233",
+            "11987654321",
             "Av. B, 20",
             null,
-            false);
+            false,
+            true);
 
         Assert.Equal(2, kitTheme.Reservations.Count);
         Assert.Single(kitTheme.Reservations, currentReservation => currentReservation.Status == ReservationStatus.Active);

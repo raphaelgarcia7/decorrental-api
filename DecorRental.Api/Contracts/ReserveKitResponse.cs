@@ -11,7 +11,9 @@ public sealed record ReserveKitResponse(
     string? StockOverrideReason,
     string CustomerName,
     string CustomerDocumentNumber,
+    string CustomerPhoneNumber,
     string CustomerAddress,
     string? Notes,
     bool HasBalloonArch,
+    bool IsEntryPaid,
     string Message);

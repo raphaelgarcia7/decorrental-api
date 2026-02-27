@@ -26,8 +26,10 @@ public class CancelReservationTests
             null,
             "Cliente Teste",
             "12345678900",
+            "12999990000",
             "Rua Teste, 100",
             null,
+            false,
             false);
 
         var repository = new FakeKitThemeRepository();

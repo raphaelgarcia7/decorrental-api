@@ -8,6 +8,7 @@ public class Reservation
 {
     private const int CustomerNameMaxLength = 120;
     private const int CustomerDocumentNumberMaxLength = 40;
+    private const int CustomerPhoneNumberMaxLength = 30;
     private const int CustomerAddressMaxLength = 250;
     private const int NotesMaxLength = 500;
 
@@ -22,9 +23,11 @@ public class Reservation
     public string? StockOverrideReason { get; private set; }
     public string CustomerName { get; private set; } = null!;
     public string CustomerDocumentNumber { get; private set; } = null!;
+    public string CustomerPhoneNumber { get; private set; } = null!;
     public string CustomerAddress { get; private set; } = null!;
     public string? Notes { get; private set; }
     public bool HasBalloonArch { get; private set; }
+    public bool IsEntryPaid { get; private set; }
     public IReadOnlyCollection<ReservationItem> Items => _items;
 
     public static Reservation Create(
@@ -35,9 +38,11 @@ public class Reservation
         string? stockOverrideReason,
         string customerName,
         string customerDocumentNumber,
+        string customerPhoneNumber,
         string customerAddress,
         string? notes,
-        bool hasBalloonArch)
+        bool hasBalloonArch,
+        bool isEntryPaid)
     {
         if (category is null)
         {
@@ -64,9 +69,11 @@ public class Reservation
             stockOverrideReason,
             customerName,
             customerDocumentNumber,
+            customerPhoneNumber,
             customerAddress,
             notes,
-            hasBalloonArch);
+            hasBalloonArch,
+            isEntryPaid);
     }
 
     private Reservation(
@@ -79,9 +86,11 @@ public class Reservation
         string? stockOverrideReason,
         string customerName,
         string customerDocumentNumber,
+        string customerPhoneNumber,
         string customerAddress,
         string? notes,
-        bool hasBalloonArch)
+        bool hasBalloonArch,
+        bool isEntryPaid)
     {
         if (items.Count == 0)
         {
@@ -113,6 +122,16 @@ public class Reservation
             throw new DomainException($"O documento do cliente deve ter no maximo {CustomerDocumentNumberMaxLength} caracteres.");
         }
 
+        if (string.IsNullOrWhiteSpace(customerPhoneNumber))
+        {
+            throw new DomainException("O telefone do cliente e obrigatorio.");
+        }
+
+        if (customerPhoneNumber.Length > CustomerPhoneNumberMaxLength)
+        {
+            throw new DomainException($"O telefone do cliente deve ter no maximo {CustomerPhoneNumberMaxLength} caracteres.");
+        }
+
         if (string.IsNullOrWhiteSpace(customerAddress))
         {
             throw new DomainException("O endereco do cliente e obrigatorio.");
@@ -137,9 +156,11 @@ public class Reservation
         StockOverrideReason = isStockOverride ? stockOverrideReason!.Trim() : null;
         CustomerName = customerName.Trim();
         CustomerDocumentNumber = customerDocumentNumber.Trim();
+        CustomerPhoneNumber = customerPhoneNumber.Trim();
         CustomerAddress = customerAddress.Trim();
         Notes = string.IsNullOrWhiteSpace(notes) ? null : notes.Trim();
         HasBalloonArch = hasBalloonArch;
+        IsEntryPaid = isEntryPaid;
 
         _items.AddRange(items);
     }

@@ -36,6 +36,10 @@ public sealed class ReserveKitRequestValidator : AbstractValidator<ReserveKitReq
             .NotEmpty().WithMessage("CustomerDocumentNumber e obrigatorio.")
             .MaximumLength(40).WithMessage("CustomerDocumentNumber deve ter no maximo 40 caracteres.");
 
+        RuleFor(request => request.CustomerPhoneNumber)
+            .NotEmpty().WithMessage("CustomerPhoneNumber e obrigatorio.")
+            .MaximumLength(30).WithMessage("CustomerPhoneNumber deve ter no maximo 30 caracteres.");
+
         RuleFor(request => request.CustomerAddress)
             .NotEmpty().WithMessage("CustomerAddress e obrigatorio.")
             .MaximumLength(250).WithMessage("CustomerAddress deve ter no maximo 250 caracteres.");

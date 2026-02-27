@@ -3,6 +3,7 @@ using System;
 using DecorRental.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DecorRental.Infrastructure.Migrations
 {
     [DbContext(typeof(DecorRentalDbContext))]
-    partial class DecorRentalDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260227182238_AddReservationPhoneAndEntryPaid")]
+    partial class AddReservationPhoneAndEntryPaid
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "9.0.13");

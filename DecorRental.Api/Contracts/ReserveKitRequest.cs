@@ -8,6 +8,8 @@ public sealed record ReserveKitRequest(
     string? StockOverrideReason = null,
     string CustomerName = "",
     string CustomerDocumentNumber = "",
+    string CustomerPhoneNumber = "",
     string CustomerAddress = "",
     string? Notes = null,
-    bool HasBalloonArch = false);
+    bool HasBalloonArch = false,
+    bool IsEntryPaid = false);

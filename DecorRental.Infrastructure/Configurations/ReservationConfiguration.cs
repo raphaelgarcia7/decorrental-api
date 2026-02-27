@@ -28,6 +28,10 @@ public sealed class ReservationConfiguration : IEntityTypeConfiguration<Reservat
             .IsRequired()
             .HasMaxLength(40);
 
+        builder.Property(reservation => reservation.CustomerPhoneNumber)
+            .IsRequired()
+            .HasMaxLength(30);
+
         builder.Property(reservation => reservation.CustomerAddress)
             .IsRequired()
             .HasMaxLength(250);
@@ -36,6 +40,9 @@ public sealed class ReservationConfiguration : IEntityTypeConfiguration<Reservat
             .HasMaxLength(500);
 
         builder.Property(reservation => reservation.HasBalloonArch)
+            .IsRequired();
+
+        builder.Property(reservation => reservation.IsEntryPaid)
             .IsRequired();
 
         builder.HasOne<KitCategory>()

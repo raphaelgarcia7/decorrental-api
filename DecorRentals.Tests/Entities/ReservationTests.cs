@@ -23,17 +23,21 @@ public class ReservationTests
             null,
             "Maria Silva",
             "12345678900",
+            "12999998888",
             "Rua das Flores, 123",
             "Cliente recorrente.",
+            true,
             true);
 
         Assert.Equal(ReservationStatus.Active, reservation.Status);
         Assert.Single(reservation.Items);
         Assert.Equal("Maria Silva", reservation.CustomerName);
         Assert.Equal("12345678900", reservation.CustomerDocumentNumber);
+        Assert.Equal("12999998888", reservation.CustomerPhoneNumber);
         Assert.Equal("Rua das Flores, 123", reservation.CustomerAddress);
         Assert.Equal("Cliente recorrente.", reservation.Notes);
         Assert.True(reservation.HasBalloonArch);
+        Assert.True(reservation.IsEntryPaid);
     }
 
     [Fact]
@@ -52,8 +56,10 @@ public class ReservationTests
             null,
             "Joao Souza",
             "98765432100",
+            "11998887766",
             "Av. Brasil, 456",
             null,
+            false,
             false);
 
         reservation.Cancel();
@@ -77,16 +83,20 @@ public class ReservationTests
             "Aprovacao manual para excecao.",
             "Ana Lima",
             "11222333444",
+            "21997776655",
             "Rua Central, 789",
             "Reserva com falta parcial de itens.",
+            false,
             false);
 
         Assert.True(reservation.IsStockOverride);
         Assert.Equal("Aprovacao manual para excecao.", reservation.StockOverrideReason);
         Assert.Equal("Ana Lima", reservation.CustomerName);
         Assert.Equal("11222333444", reservation.CustomerDocumentNumber);
+        Assert.Equal("21997776655", reservation.CustomerPhoneNumber);
         Assert.Equal("Rua Central, 789", reservation.CustomerAddress);
         Assert.Equal("Reserva com falta parcial de itens.", reservation.Notes);
         Assert.False(reservation.HasBalloonArch);
+        Assert.False(reservation.IsEntryPaid);
     }
 }

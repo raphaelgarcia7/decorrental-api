@@ -12,9 +12,11 @@ public sealed record ReservationResponse(
     string? StockOverrideReason,
     string CustomerName,
     string CustomerDocumentNumber,
+    string CustomerPhoneNumber,
     string CustomerAddress,
     string? Notes,
-    bool HasBalloonArch);
+    bool HasBalloonArch,
+    bool IsEntryPaid);
 
 public sealed record KitDetailResponse(
     Guid Id,
