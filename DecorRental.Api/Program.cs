@@ -2,21 +2,25 @@ using System.Text;
 using DecorRental.Api.Middleware;
 using DecorRental.Api.Security;
 using DecorRental.Api.Validators;
+using DecorRental.Application.Contracts;
 using DecorRental.Application.Messaging;
 using DecorRental.Application.UseCases.CancelReservation;
 using DecorRental.Application.UseCases.CreateItemType;
 using DecorRental.Application.UseCases.CreateKit;
 using DecorRental.Application.UseCases.CreateKitCategory;
 using DecorRental.Application.UseCases.AddCategoryItem;
+using DecorRental.Application.UseCases.GenerateContractDocument;
 using DecorRental.Application.UseCases.GetKitById;
 using DecorRental.Application.UseCases.GetKitCategoryById;
 using DecorRental.Application.UseCases.GetKitCategories;
 using DecorRental.Application.UseCases.GetKits;
 using DecorRental.Application.UseCases.GetItemTypeById;
 using DecorRental.Application.UseCases.GetItemTypes;
+using DecorRental.Application.UseCases.GetReservationContractData;
 using DecorRental.Application.UseCases.ReserveKit;
 using DecorRental.Application.UseCases.UpdateItemStock;
 using DecorRental.Domain.Repositories;
+using DecorRental.Infrastructure.Documents;
 using DecorRental.Infrastructure.Messaging;
 using DecorRental.Infrastructure.Persistence;
 using DecorRental.Infrastructure.Repositories;
@@ -36,6 +40,7 @@ builder.Logging.AddJsonConsole();
 
 builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection(JwtOptions.SectionName));
 builder.Services.Configure<RabbitMqOptions>(builder.Configuration.GetSection(RabbitMqOptions.SectionName));
+builder.Services.Configure<ContractTemplateOptions>(builder.Configuration.GetSection(ContractTemplateOptions.SectionName));
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -119,6 +124,7 @@ builder.Services.AddScoped<IKitThemeRepository, EfKitThemeRepository>();
 builder.Services.AddScoped<IKitCategoryRepository, EfKitCategoryRepository>();
 builder.Services.AddScoped<IItemTypeRepository, EfItemTypeRepository>();
 builder.Services.AddScoped<IReservationQueryRepository, EfReservationQueryRepository>();
+builder.Services.AddScoped<IContractDocumentGenerator, ContractDocumentGenerator>();
 builder.Services.AddScoped<CreateKitHandler>();
 builder.Services.AddScoped<GetKitByIdHandler>();
 builder.Services.AddScoped<GetKitsHandler>();
@@ -132,6 +138,8 @@ builder.Services.AddScoped<CreateKitCategoryHandler>();
 builder.Services.AddScoped<AddCategoryItemHandler>();
 builder.Services.AddScoped<GetKitCategoriesHandler>();
 builder.Services.AddScoped<GetKitCategoryByIdHandler>();
+builder.Services.AddScoped<GetReservationContractDataHandler>();
+builder.Services.AddScoped<GenerateContractDocumentHandler>();
 
 builder.Services.AddValidatorsFromAssemblyContaining<CreateKitRequestValidator>();
 builder.Services.AddFluentValidationAutoValidation();

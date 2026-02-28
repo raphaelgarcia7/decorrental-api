@@ -4,6 +4,7 @@ using DecorRental.Application.UseCases.CancelReservation;
 using DecorRental.Application.UseCases.CreateKit;
 using DecorRental.Application.UseCases.GetKitById;
 using DecorRental.Application.UseCases.GetKits;
+using DecorRental.Application.UseCases.GetReservationContractData;
 using DecorRental.Application.UseCases.ReserveKit;
 using DecorRental.Domain.Entities;
 using Microsoft.AspNetCore.Authorization;
@@ -19,6 +20,7 @@ public class KitsController : ControllerBase
     private readonly CreateKitHandler _createHandler;
     private readonly GetKitsHandler _getKitsHandler;
     private readonly GetKitByIdHandler _getKitByIdHandler;
+    private readonly GetReservationContractDataHandler _getReservationContractDataHandler;
     private readonly ReserveKitHandler _reserveHandler;
     private readonly CancelReservationHandler _cancelHandler;
 
@@ -26,12 +28,14 @@ public class KitsController : ControllerBase
         CreateKitHandler createHandler,
         GetKitsHandler getKitsHandler,
         GetKitByIdHandler getKitByIdHandler,
+        GetReservationContractDataHandler getReservationContractDataHandler,
         ReserveKitHandler reserveHandler,
         CancelReservationHandler cancelHandler)
     {
         _createHandler = createHandler;
         _getKitsHandler = getKitsHandler;
         _getKitByIdHandler = getKitByIdHandler;
+        _getReservationContractDataHandler = getReservationContractDataHandler;
         _reserveHandler = reserveHandler;
         _cancelHandler = cancelHandler;
     }
@@ -150,6 +154,33 @@ public class KitsController : ControllerBase
             result.KitThemeId,
             result.ReservationStatus,
             "Reserva cancelada com sucesso.");
+
+        return Ok(response);
+    }
+
+    [HttpGet("{id:guid}/reservations/{reservationId:guid}/contract-data")]
+    [ProducesResponseType(typeof(ContractDataResponse), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetContractData(Guid id, Guid reservationId, CancellationToken cancellationToken)
+    {
+        var contractData = await _getReservationContractDataHandler.HandleAsync(
+            new GetReservationContractDataQuery(id, reservationId),
+            cancellationToken);
+
+        var response = new ContractDataResponse(
+            contractData.KitThemeId,
+            contractData.ReservationId,
+            contractData.KitThemeName,
+            contractData.KitCategoryName,
+            contractData.ReservationStartDate,
+            contractData.ReservationEndDate,
+            contractData.CustomerName,
+            contractData.CustomerDocumentNumber,
+            contractData.CustomerPhoneNumber,
+            contractData.CustomerAddress,
+            contractData.Notes,
+            contractData.HasBalloonArch,
+            contractData.IsEntryPaid,
+            contractData.ContractDate);
 
         return Ok(response);
     }

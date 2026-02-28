@@ -26,6 +26,7 @@ services:
       RabbitMq__Password: ${RABBITMQ_PASSWORD}
       RabbitMq__VirtualHost: ${RABBITMQ_VHOST}
       RabbitMq__ExchangeName: ${RABBITMQ_EXCHANGE}
+      ContractTemplate__FilePath: ${CONTRACT_TEMPLATE_FILE_PATH}
     volumes:
       - decorrental_data:/app/data
 
