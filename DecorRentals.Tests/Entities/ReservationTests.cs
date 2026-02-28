@@ -99,4 +99,54 @@ public class ReservationTests
         Assert.False(reservation.HasBalloonArch);
         Assert.False(reservation.IsEntryPaid);
     }
+
+    [Fact]
+    public void Update_should_replace_customer_data_and_period()
+    {
+        var itemType = new ItemType("Painel", 3);
+        var initialCategory = new KitCategory("Basica");
+        initialCategory.AddOrUpdateItem(itemType.Id, 1);
+        var updatedCategory = new KitCategory("Completa");
+        updatedCategory.AddOrUpdateItem(itemType.Id, 2);
+        var initialPeriod = new DateRange(new DateOnly(2026, 8, 1), new DateOnly(2026, 8, 2));
+
+        var reservation = Reservation.Create(
+            Guid.NewGuid(),
+            initialCategory,
+            initialPeriod,
+            false,
+            null,
+            "Cliente Inicial",
+            "12345678900",
+            "11999998888",
+            "Rua Inicial, 10",
+            null,
+            false,
+            false);
+
+        reservation.Update(
+            updatedCategory,
+            new DateRange(new DateOnly(2026, 8, 3), new DateOnly(2026, 8, 4)),
+            true,
+            "Aprovado manualmente.",
+            "Cliente Atualizado",
+            "99988877766",
+            "11991112222",
+            "Rua Atualizada, 20",
+            "Obs atualizada.",
+            true,
+            true);
+
+        Assert.Equal(updatedCategory.Id, reservation.KitCategoryId);
+        Assert.Equal(new DateOnly(2026, 8, 3), reservation.Period.Start);
+        Assert.Equal(new DateOnly(2026, 8, 4), reservation.Period.End);
+        Assert.Equal("Cliente Atualizado", reservation.CustomerName);
+        Assert.Equal("99988877766", reservation.CustomerDocumentNumber);
+        Assert.Equal("11991112222", reservation.CustomerPhoneNumber);
+        Assert.Equal("Rua Atualizada, 20", reservation.CustomerAddress);
+        Assert.Equal("Obs atualizada.", reservation.Notes);
+        Assert.True(reservation.IsStockOverride);
+        Assert.Equal("Aprovado manualmente.", reservation.StockOverrideReason);
+        Assert.Equal(2, reservation.Items.Single().Quantity);
+    }
 }

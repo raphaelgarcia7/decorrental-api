@@ -6,6 +6,7 @@ using DecorRental.Application.UseCases.GetKitById;
 using DecorRental.Application.UseCases.GetKits;
 using DecorRental.Application.UseCases.GetReservationContractData;
 using DecorRental.Application.UseCases.ReserveKit;
+using DecorRental.Application.UseCases.UpdateReservation;
 using DecorRental.Domain.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -22,6 +23,7 @@ public class KitsController : ControllerBase
     private readonly GetKitByIdHandler _getKitByIdHandler;
     private readonly GetReservationContractDataHandler _getReservationContractDataHandler;
     private readonly ReserveKitHandler _reserveHandler;
+    private readonly UpdateReservationHandler _updateReservationHandler;
     private readonly CancelReservationHandler _cancelHandler;
 
     public KitsController(
@@ -30,6 +32,7 @@ public class KitsController : ControllerBase
         GetKitByIdHandler getKitByIdHandler,
         GetReservationContractDataHandler getReservationContractDataHandler,
         ReserveKitHandler reserveHandler,
+        UpdateReservationHandler updateReservationHandler,
         CancelReservationHandler cancelHandler)
     {
         _createHandler = createHandler;
@@ -37,6 +40,7 @@ public class KitsController : ControllerBase
         _getKitByIdHandler = getKitByIdHandler;
         _getReservationContractDataHandler = getReservationContractDataHandler;
         _reserveHandler = reserveHandler;
+        _updateReservationHandler = updateReservationHandler;
         _cancelHandler = cancelHandler;
     }
 
@@ -154,6 +158,53 @@ public class KitsController : ControllerBase
             result.KitThemeId,
             result.ReservationStatus,
             "Reserva cancelada com sucesso.");
+
+        return Ok(response);
+    }
+
+    [HttpPut("{id:guid}/reservations/{reservationId:guid}")]
+    [Authorize(Policy = AuthorizationPolicies.ManageKits)]
+    [ProducesResponseType(typeof(UpdateReservationResponse), StatusCodes.Status200OK)]
+    public async Task<IActionResult> UpdateReservation(
+        Guid id,
+        Guid reservationId,
+        [FromBody] UpdateReservationRequest request,
+        CancellationToken cancellationToken)
+    {
+        var command = new UpdateReservationCommand(
+            id,
+            reservationId,
+            request.KitCategoryId,
+            request.StartDate,
+            request.EndDate,
+            request.AllowStockOverride,
+            request.StockOverrideReason,
+            request.CustomerName,
+            request.CustomerDocumentNumber,
+            request.CustomerPhoneNumber,
+            request.CustomerAddress,
+            request.Notes,
+            request.HasBalloonArch,
+            request.IsEntryPaid);
+
+        var result = await _updateReservationHandler.HandleAsync(command, cancellationToken);
+        var response = new UpdateReservationResponse(
+            result.ReservationId,
+            result.KitThemeId,
+            result.KitCategoryId,
+            result.StartDate,
+            result.EndDate,
+            result.ReservationStatus,
+            result.IsStockOverride,
+            result.StockOverrideReason,
+            result.CustomerName,
+            result.CustomerDocumentNumber,
+            result.CustomerPhoneNumber,
+            result.CustomerAddress,
+            result.Notes,
+            result.HasBalloonArch,
+            result.IsEntryPaid,
+            "Reserva atualizada com sucesso.");
 
         return Ok(response);
     }

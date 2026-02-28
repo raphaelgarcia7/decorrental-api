@@ -6,9 +6,9 @@ using DecorRental.Domain.Exceptions;
 using DecorRental.Domain.Repositories;
 using DecorRental.Domain.ValueObjects;
 
-namespace DecorRental.Application.UseCases.ReserveKit;
+namespace DecorRental.Application.UseCases.UpdateReservation;
 
-public sealed class ReserveKitHandler
+public sealed class UpdateReservationHandler
 {
     private readonly IKitThemeRepository _kitThemeRepository;
     private readonly IKitCategoryRepository _categoryRepository;
@@ -16,7 +16,7 @@ public sealed class ReserveKitHandler
     private readonly IReservationQueryRepository _reservationQueryRepository;
     private readonly IMessageBus _messageBus;
 
-    public ReserveKitHandler(
+    public UpdateReservationHandler(
         IKitThemeRepository kitThemeRepository,
         IKitCategoryRepository categoryRepository,
         IItemTypeRepository itemTypeRepository,
@@ -30,18 +30,30 @@ public sealed class ReserveKitHandler
         _messageBus = messageBus;
     }
 
-    public async Task<ReserveKitResult> HandleAsync(
-        ReserveKitCommand command,
+    public async Task<UpdateReservationResult> HandleAsync(
+        UpdateReservationCommand command,
         CancellationToken cancellationToken = default)
     {
         var kitTheme = await _kitThemeRepository.GetByIdAsync(command.KitThemeId, cancellationToken)
             ?? throw new NotFoundException("Tema de kit nao encontrado.");
 
+        var existingReservation = kitTheme.Reservations.FirstOrDefault(
+            reservation => reservation.Id == command.ReservationId);
+        if (existingReservation is null)
+        {
+            throw new NotFoundException("Reserva nao encontrada.");
+        }
+
         var category = await _categoryRepository.GetByIdAsync(command.KitCategoryId, cancellationToken)
             ?? throw new NotFoundException("Categoria nao encontrada.");
 
         var period = new DateRange(command.StartDate, command.EndDate);
-        var stockShortages = await GetStockShortagesAsync(category, period, cancellationToken);
+        var stockShortages = await GetStockShortagesAsync(
+            category,
+            period,
+            command.ReservationId,
+            cancellationToken);
+
         if (stockShortages.Count > 0 && !command.AllowStockOverride)
         {
             var primaryShortage = stockShortages[0];
@@ -50,7 +62,8 @@ public sealed class ReserveKitHandler
         }
 
         var isStockOverrideEffective = stockShortages.Count > 0 && command.AllowStockOverride;
-        var reservation = kitTheme.Reserve(
+        var reservation = kitTheme.UpdateReservation(
+            command.ReservationId,
             category,
             period,
             isStockOverrideEffective,
@@ -65,20 +78,19 @@ public sealed class ReserveKitHandler
 
         await _kitThemeRepository.SaveAsync(kitTheme, cancellationToken);
 
-        var integrationEvent = new ReservationCreatedEvent(
+        var integrationEvent = new ReservationUpdatedEvent(
             kitTheme.Id,
-            category.Id,
+            reservation.KitCategoryId,
             reservation.Id,
             reservation.Period.Start,
             reservation.Period.End,
             reservation.Status.ToString());
-
         await _messageBus.PublishAsync(integrationEvent, cancellationToken);
 
-        return new ReserveKitResult(
+        return new UpdateReservationResult(
             reservation.Id,
             kitTheme.Id,
-            category.Id,
+            reservation.KitCategoryId,
             reservation.Period.Start,
             reservation.Period.End,
             reservation.Status.ToString(),
@@ -96,6 +108,7 @@ public sealed class ReserveKitHandler
     private async Task<IReadOnlyList<StockShortage>> GetStockShortagesAsync(
         KitCategory category,
         DateRange period,
+        Guid reservationIdToExclude,
         CancellationToken cancellationToken)
     {
         var requestedItemQuantities = category.Items
@@ -112,7 +125,7 @@ public sealed class ReserveKitHandler
             period.Start,
             period.End,
             itemTypeIds,
-            null,
+            reservationIdToExclude,
             cancellationToken);
 
         var shortages = new List<StockShortage>();

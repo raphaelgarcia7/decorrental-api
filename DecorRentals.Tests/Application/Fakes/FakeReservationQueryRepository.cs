@@ -10,10 +10,12 @@ public sealed class FakeReservationQueryRepository : IReservationQueryRepository
         DateOnly requestStartDate,
         DateOnly requestEndDate,
         IReadOnlyCollection<Guid> itemTypeIds,
+        Guid? excludedReservationId = null,
         CancellationToken cancellationToken = default)
     {
         var items = _items
             .Where(item => itemTypeIds.Contains(item.ItemTypeId))
+            .Where(item => !excludedReservationId.HasValue || item.ReservationId != excludedReservationId.Value)
             .Where(item => item.StartDate < requestEndDate && item.EndDate > requestStartDate)
             .ToList();
 

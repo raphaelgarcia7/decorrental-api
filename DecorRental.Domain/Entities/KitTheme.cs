@@ -75,5 +75,41 @@ public class KitTheme
         return reservation;
     }
 
+    public Reservation UpdateReservation(
+        Guid reservationId,
+        KitCategory category,
+        DateRange period,
+        bool isStockOverride,
+        string? stockOverrideReason,
+        string customerName,
+        string customerDocumentNumber,
+        string customerPhoneNumber,
+        string customerAddress,
+        string? notes,
+        bool hasBalloonArch,
+        bool isEntryPaid)
+    {
+        var reservation = _reservations.FirstOrDefault(currentReservation => currentReservation.Id == reservationId);
+        if (reservation is null)
+        {
+            throw new DomainException("Reserva nao encontrada para este tema de kit.");
+        }
+
+        reservation.Update(
+            category,
+            period,
+            isStockOverride,
+            stockOverrideReason,
+            customerName,
+            customerDocumentNumber,
+            customerPhoneNumber,
+            customerAddress,
+            notes,
+            hasBalloonArch,
+            isEntryPaid);
+
+        return reservation;
+    }
+
     private KitTheme() { }
 }

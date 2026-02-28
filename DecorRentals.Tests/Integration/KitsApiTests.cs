@@ -323,6 +323,52 @@ public sealed class KitsApiTests : IClassFixture<DecorRentalApiFactory>
         Assert.Equal(HttpStatusCode.OK, reserveAgainResponse.StatusCode);
     }
 
+    [Fact]
+    public async Task Update_reservation_endpoint_should_update_payload_and_keep_same_reservation_id()
+    {
+        await AuthenticateAsManagerAsync();
+
+        var categoryId = await CreateCategoryWithItemAsync("Completo", "Painel", 1, 1);
+        var kitId = await CreateKitAsync("Tema Teste");
+
+        var createReservationResponse = await _httpClient.PostAsJsonAsync(
+            $"/api/kits/{kitId}/reservations",
+            new ReserveKitRequest(categoryId, "2026-07-10", "2026-07-12"));
+        createReservationResponse.EnsureSuccessStatusCode();
+
+        var createdReservation = await createReservationResponse.Content.ReadFromJsonAsync<ReserveKitResponse>();
+        Assert.NotNull(createdReservation);
+
+        var updateResponse = await _httpClient.PutAsJsonAsync(
+            $"/api/kits/{kitId}/reservations/{createdReservation.ReservationId}",
+            new UpdateReservationRequest(
+                categoryId,
+                "2026-07-11",
+                "2026-07-13",
+                false,
+                null,
+                "Cliente Editado",
+                "99988877766",
+                "11991112222",
+                "Rua Atualizada, 77",
+                "Atualizacao de teste.",
+                true,
+                true));
+
+        Assert.Equal(HttpStatusCode.OK, updateResponse.StatusCode);
+
+        var updatedReservation = await updateResponse.Content.ReadFromJsonAsync<UpdateReservationResponse>();
+        Assert.NotNull(updatedReservation);
+        Assert.Equal(createdReservation.ReservationId, updatedReservation.ReservationId);
+        Assert.Equal("Cliente Editado", updatedReservation.CustomerName);
+        Assert.Equal("99988877766", updatedReservation.CustomerDocumentNumber);
+        Assert.Equal("11991112222", updatedReservation.CustomerPhoneNumber);
+        Assert.Equal("Rua Atualizada, 77", updatedReservation.CustomerAddress);
+        Assert.Equal("Atualizacao de teste.", updatedReservation.Notes);
+        Assert.True(updatedReservation.HasBalloonArch);
+        Assert.True(updatedReservation.IsEntryPaid);
+    }
+
     private async Task<Guid> CreateKitAsync(string name)
     {
         var response = await _httpClient.PostAsJsonAsync("/api/kits", new CreateKitRequest(name));
@@ -398,6 +444,20 @@ public sealed class KitsApiTests : IClassFixture<DecorRentalApiFactory>
         bool HasBalloonArch = false,
         bool IsEntryPaid = false);
 
+    private sealed record UpdateReservationRequest(
+        Guid KitCategoryId,
+        string StartDate,
+        string EndDate,
+        bool AllowStockOverride = false,
+        string? StockOverrideReason = null,
+        string CustomerName = "Cliente Teste",
+        string CustomerDocumentNumber = "12345678900",
+        string CustomerPhoneNumber = "12999990000",
+        string CustomerAddress = "Rua Teste, 100",
+        string? Notes = "Reserva atualizada por teste automatizado.",
+        bool HasBalloonArch = false,
+        bool IsEntryPaid = false);
+
     private sealed record AuthTokenRequest(string Username, string Password);
 
     private sealed record AuthTokenResponse(string AccessToken);
@@ -435,6 +495,24 @@ public sealed class KitsApiTests : IClassFixture<DecorRentalApiFactory>
         bool IsEntryPaid);
 
     private sealed record ReserveKitResponse(
+        Guid ReservationId,
+        Guid KitThemeId,
+        Guid KitCategoryId,
+        string StartDate,
+        string EndDate,
+        string Status,
+        bool IsStockOverride,
+        string? StockOverrideReason,
+        string CustomerName,
+        string CustomerDocumentNumber,
+        string CustomerPhoneNumber,
+        string CustomerAddress,
+        string? Notes,
+        bool HasBalloonArch,
+        bool IsEntryPaid,
+        string Message);
+
+    private sealed record UpdateReservationResponse(
         Guid ReservationId,
         Guid KitThemeId,
         Guid KitCategoryId,

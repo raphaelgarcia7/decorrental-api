@@ -1,6 +1,7 @@
 namespace DecorRental.Domain.Repositories;
 
 public sealed record ActiveReservationItem(
+    Guid ReservationId,
     Guid ItemTypeId,
     int Quantity,
     DateOnly StartDate,
@@ -12,5 +13,6 @@ public interface IReservationQueryRepository
         DateOnly requestStartDate,
         DateOnly requestEndDate,
         IReadOnlyCollection<Guid> itemTypeIds,
+        Guid? excludedReservationId = null,
         CancellationToken cancellationToken = default);
 }

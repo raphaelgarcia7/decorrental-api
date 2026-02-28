@@ -44,20 +44,8 @@ public class Reservation
         bool hasBalloonArch,
         bool isEntryPaid)
     {
-        if (category is null)
-        {
-            throw new DomainException("Categoria e obrigatoria.");
-        }
-
-        if (category.Items.Count == 0)
-        {
-            throw new DomainException("Category must have at least one item.");
-        }
-
         var reservationId = Guid.NewGuid();
-        var reservationItems = category.Items
-            .Select(categoryItem => new ReservationItem(reservationId, categoryItem.ItemTypeId, categoryItem.Quantity))
-            .ToList();
+        var reservationItems = BuildReservationItems(reservationId, category);
 
         return new Reservation(
             reservationId,
@@ -97,55 +85,14 @@ public class Reservation
             throw new DomainException("Reservation must contain at least one item.");
         }
 
-        if (isStockOverride && string.IsNullOrWhiteSpace(stockOverrideReason))
-        {
-            throw new DomainException("O motivo do override de estoque e obrigatorio.");
-        }
-
-        if (string.IsNullOrWhiteSpace(customerName))
-        {
-            throw new DomainException("O nome do cliente e obrigatorio.");
-        }
-
-        if (customerName.Length > CustomerNameMaxLength)
-        {
-            throw new DomainException($"O nome do cliente deve ter no maximo {CustomerNameMaxLength} caracteres.");
-        }
-
-        if (string.IsNullOrWhiteSpace(customerDocumentNumber))
-        {
-            throw new DomainException("O documento do cliente e obrigatorio.");
-        }
-
-        if (customerDocumentNumber.Length > CustomerDocumentNumberMaxLength)
-        {
-            throw new DomainException($"O documento do cliente deve ter no maximo {CustomerDocumentNumberMaxLength} caracteres.");
-        }
-
-        if (string.IsNullOrWhiteSpace(customerPhoneNumber))
-        {
-            throw new DomainException("O telefone do cliente e obrigatorio.");
-        }
-
-        if (customerPhoneNumber.Length > CustomerPhoneNumberMaxLength)
-        {
-            throw new DomainException($"O telefone do cliente deve ter no maximo {CustomerPhoneNumberMaxLength} caracteres.");
-        }
-
-        if (string.IsNullOrWhiteSpace(customerAddress))
-        {
-            throw new DomainException("O endereco do cliente e obrigatorio.");
-        }
-
-        if (customerAddress.Length > CustomerAddressMaxLength)
-        {
-            throw new DomainException($"O endereco do cliente deve ter no maximo {CustomerAddressMaxLength} caracteres.");
-        }
-
-        if (!string.IsNullOrWhiteSpace(notes) && notes.Length > NotesMaxLength)
-        {
-            throw new DomainException($"As observacoes devem ter no maximo {NotesMaxLength} caracteres.");
-        }
+        var normalizedCustomerName = NormalizeAndValidateCustomerName(customerName);
+        var normalizedDocumentNumber = NormalizeAndValidateDocumentNumber(customerDocumentNumber);
+        var normalizedPhoneNumber = NormalizeAndValidatePhoneNumber(customerPhoneNumber);
+        var normalizedAddress = NormalizeAndValidateAddress(customerAddress);
+        var normalizedNotes = NormalizeAndValidateNotes(notes);
+        var normalizedStockOverrideReason = NormalizeAndValidateStockOverrideReason(
+            isStockOverride,
+            stockOverrideReason);
 
         Id = reservationId;
         KitThemeId = kitThemeId;
@@ -153,16 +100,60 @@ public class Reservation
         Period = period;
         Status = ReservationStatus.Active;
         IsStockOverride = isStockOverride;
-        StockOverrideReason = isStockOverride ? stockOverrideReason!.Trim() : null;
-        CustomerName = customerName.Trim();
-        CustomerDocumentNumber = customerDocumentNumber.Trim();
-        CustomerPhoneNumber = customerPhoneNumber.Trim();
-        CustomerAddress = customerAddress.Trim();
-        Notes = string.IsNullOrWhiteSpace(notes) ? null : notes.Trim();
+        StockOverrideReason = normalizedStockOverrideReason;
+        CustomerName = normalizedCustomerName;
+        CustomerDocumentNumber = normalizedDocumentNumber;
+        CustomerPhoneNumber = normalizedPhoneNumber;
+        CustomerAddress = normalizedAddress;
+        Notes = normalizedNotes;
         HasBalloonArch = hasBalloonArch;
         IsEntryPaid = isEntryPaid;
 
         _items.AddRange(items);
+    }
+
+    public void Update(
+        KitCategory category,
+        DateRange period,
+        bool isStockOverride,
+        string? stockOverrideReason,
+        string customerName,
+        string customerDocumentNumber,
+        string customerPhoneNumber,
+        string customerAddress,
+        string? notes,
+        bool hasBalloonArch,
+        bool isEntryPaid)
+    {
+        if (Status == ReservationStatus.Cancelled)
+        {
+            throw new DomainException("Nao e possivel editar uma reserva cancelada.");
+        }
+
+        var updatedItems = BuildReservationItems(Id, category);
+        var normalizedCustomerName = NormalizeAndValidateCustomerName(customerName);
+        var normalizedDocumentNumber = NormalizeAndValidateDocumentNumber(customerDocumentNumber);
+        var normalizedPhoneNumber = NormalizeAndValidatePhoneNumber(customerPhoneNumber);
+        var normalizedAddress = NormalizeAndValidateAddress(customerAddress);
+        var normalizedNotes = NormalizeAndValidateNotes(notes);
+        var normalizedStockOverrideReason = NormalizeAndValidateStockOverrideReason(
+            isStockOverride,
+            stockOverrideReason);
+
+        KitCategoryId = category.Id;
+        Period = period;
+        IsStockOverride = isStockOverride;
+        StockOverrideReason = normalizedStockOverrideReason;
+        CustomerName = normalizedCustomerName;
+        CustomerDocumentNumber = normalizedDocumentNumber;
+        CustomerPhoneNumber = normalizedPhoneNumber;
+        CustomerAddress = normalizedAddress;
+        Notes = normalizedNotes;
+        HasBalloonArch = hasBalloonArch;
+        IsEntryPaid = isEntryPaid;
+
+        _items.Clear();
+        _items.AddRange(updatedItems);
     }
 
     public void Cancel()
@@ -173,6 +164,118 @@ public class Reservation
         }
 
         Status = ReservationStatus.Cancelled;
+    }
+
+    private static List<ReservationItem> BuildReservationItems(Guid reservationId, KitCategory category)
+    {
+        if (category is null)
+        {
+            throw new DomainException("Categoria e obrigatoria.");
+        }
+
+        if (category.Items.Count == 0)
+        {
+            throw new DomainException("Category must have at least one item.");
+        }
+
+        return category.Items
+            .Select(categoryItem => new ReservationItem(reservationId, categoryItem.ItemTypeId, categoryItem.Quantity))
+            .ToList();
+    }
+
+    private static string NormalizeAndValidateCustomerName(string customerName)
+    {
+        if (string.IsNullOrWhiteSpace(customerName))
+        {
+            throw new DomainException("O nome do cliente e obrigatorio.");
+        }
+
+        var normalizedCustomerName = customerName.Trim();
+        if (normalizedCustomerName.Length > CustomerNameMaxLength)
+        {
+            throw new DomainException($"O nome do cliente deve ter no maximo {CustomerNameMaxLength} caracteres.");
+        }
+
+        return normalizedCustomerName;
+    }
+
+    private static string NormalizeAndValidateDocumentNumber(string customerDocumentNumber)
+    {
+        if (string.IsNullOrWhiteSpace(customerDocumentNumber))
+        {
+            throw new DomainException("O documento do cliente e obrigatorio.");
+        }
+
+        var normalizedDocumentNumber = customerDocumentNumber.Trim();
+        if (normalizedDocumentNumber.Length > CustomerDocumentNumberMaxLength)
+        {
+            throw new DomainException($"O documento do cliente deve ter no maximo {CustomerDocumentNumberMaxLength} caracteres.");
+        }
+
+        return normalizedDocumentNumber;
+    }
+
+    private static string NormalizeAndValidatePhoneNumber(string customerPhoneNumber)
+    {
+        if (string.IsNullOrWhiteSpace(customerPhoneNumber))
+        {
+            throw new DomainException("O telefone do cliente e obrigatorio.");
+        }
+
+        var normalizedPhoneNumber = customerPhoneNumber.Trim();
+        if (normalizedPhoneNumber.Length > CustomerPhoneNumberMaxLength)
+        {
+            throw new DomainException($"O telefone do cliente deve ter no maximo {CustomerPhoneNumberMaxLength} caracteres.");
+        }
+
+        return normalizedPhoneNumber;
+    }
+
+    private static string NormalizeAndValidateAddress(string customerAddress)
+    {
+        if (string.IsNullOrWhiteSpace(customerAddress))
+        {
+            throw new DomainException("O endereco do cliente e obrigatorio.");
+        }
+
+        var normalizedAddress = customerAddress.Trim();
+        if (normalizedAddress.Length > CustomerAddressMaxLength)
+        {
+            throw new DomainException($"O endereco do cliente deve ter no maximo {CustomerAddressMaxLength} caracteres.");
+        }
+
+        return normalizedAddress;
+    }
+
+    private static string? NormalizeAndValidateNotes(string? notes)
+    {
+        if (string.IsNullOrWhiteSpace(notes))
+        {
+            return null;
+        }
+
+        var normalizedNotes = notes.Trim();
+        if (normalizedNotes.Length > NotesMaxLength)
+        {
+            throw new DomainException($"As observacoes devem ter no maximo {NotesMaxLength} caracteres.");
+        }
+
+        return normalizedNotes;
+    }
+
+    private static string? NormalizeAndValidateStockOverrideReason(bool isStockOverride, string? stockOverrideReason)
+    {
+        if (!isStockOverride)
+        {
+            return null;
+        }
+
+        if (string.IsNullOrWhiteSpace(stockOverrideReason))
+        {
+            throw new DomainException("O motivo do override de estoque e obrigatorio.");
+        }
+
+        return stockOverrideReason.Trim();
     }
 
     private Reservation() { }

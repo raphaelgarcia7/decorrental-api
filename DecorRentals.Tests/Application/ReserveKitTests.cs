@@ -83,6 +83,7 @@ public class ReserveKitTests
         var messageBus = new FakeMessageBus();
 
         reservationQueryRepository.Add(new ActiveReservationItem(
+            Guid.NewGuid(),
             itemType.Id,
             4,
             new DateOnly(2026, 1, 10),
@@ -132,6 +133,7 @@ public class ReserveKitTests
         var messageBus = new FakeMessageBus();
 
         reservationQueryRepository.Add(new ActiveReservationItem(
+            Guid.NewGuid(),
             itemType.Id,
             1,
             new DateOnly(2026, 2, 22),
