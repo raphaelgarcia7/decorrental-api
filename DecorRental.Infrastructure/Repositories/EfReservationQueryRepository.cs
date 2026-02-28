@@ -18,6 +18,7 @@ public sealed class EfReservationQueryRepository : IReservationQueryRepository
         DateOnly requestStartDate,
         DateOnly requestEndDate,
         IReadOnlyCollection<Guid> itemTypeIds,
+        Guid? excludedReservationId = null,
         CancellationToken cancellationToken = default)
     {
         if (itemTypeIds.Count == 0)
@@ -28,11 +29,13 @@ public sealed class EfReservationQueryRepository : IReservationQueryRepository
         var rows = await _context.Reservations
             .AsNoTracking()
             .Where(reservation => reservation.Status == ReservationStatus.Active)
+            .Where(reservation => !excludedReservationId.HasValue || reservation.Id != excludedReservationId.Value)
             .Where(reservation => reservation.Period.Start < requestEndDate && reservation.Period.End > requestStartDate)
             .SelectMany(
                 reservation => reservation.Items,
                 (reservation, reservationItem) => new
                 {
+                    reservation.Id,
                     reservationItem.ItemTypeId,
                     reservationItem.Quantity,
                     StartDate = reservation.Period.Start,
@@ -42,7 +45,7 @@ public sealed class EfReservationQueryRepository : IReservationQueryRepository
             .ToListAsync(cancellationToken);
 
         return rows
-            .Select(row => new ActiveReservationItem(row.ItemTypeId, row.Quantity, row.StartDate, row.EndDate))
+            .Select(row => new ActiveReservationItem(row.Id, row.ItemTypeId, row.Quantity, row.StartDate, row.EndDate))
             .ToList();
     }
 }
