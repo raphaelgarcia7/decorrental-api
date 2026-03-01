@@ -1,4 +1,6 @@
 ﻿using System.Globalization;
+using System.IO.Compression;
+using System.Security;
 using System.Text;
 using System.Text.RegularExpressions;
 using DecorRental.Application.Contracts;
@@ -64,15 +66,9 @@ public sealed class ContractDocumentGenerator : IContractDocumentGenerator
         var templateBytes = await File.ReadAllBytesAsync(templateFilePath, cancellationToken);
         await using var stream = new MemoryStream();
         await stream.WriteAsync(templateBytes, cancellationToken);
-        stream.Position = 0;
 
-        using var wordDocument = WordprocessingDocument.Open(stream, true);
-        var mainDocumentPart = wordDocument.MainDocumentPart
-            ?? throw new InvalidOperationException("Template de contrato invalido.");
-
-        var replacements = BuildTemplateReplacements(contractData);
-        ReplaceTemplateTokens(mainDocumentPart, replacements);
-        mainDocumentPart.Document.Save();
+        var replacements = BuildEscapedTemplateReplacements(contractData);
+        ReplaceTemplateTokens(stream, replacements);
 
         return stream.ToArray();
     }
@@ -86,28 +82,11 @@ public sealed class ContractDocumentGenerator : IContractDocumentGenerator
             var mainDocumentPart = wordDocument.AddMainDocumentPart();
             mainDocumentPart.Document = new DocumentFormat.OpenXml.Wordprocessing.Document();
 
-            var body = new Body(
-                CreateParagraph("CONTRATO DE LOCACAO DE DECORACAO", isBold: true, fontSizeHalfPoints: "32"),
-                CreateParagraph(string.Empty),
-                CreateParagraph($"Cliente: {contractData.CustomerName}"),
-                CreateParagraph($"Documento: {contractData.CustomerDocumentNumber}"),
-                CreateParagraph($"Telefone: {contractData.CustomerPhoneNumber}"),
-                CreateParagraph($"Endereco: {contractData.CustomerAddress}"),
-                CreateParagraph($"Bairro: {contractData.CustomerNeighborhood ?? "Nao informado"}"),
-                CreateParagraph($"Cidade: {contractData.CustomerCity ?? "Nao informado"}"),
-                CreateParagraph($"Tema: {contractData.KitThemeName}"),
-                CreateParagraph($"Categoria: {contractData.KitCategoryName}"),
-                CreateParagraph($"Periodo: {FormatDate(contractData.ReservationStartDate)} ate {FormatDate(contractData.ReservationEndDate)}"),
-                CreateParagraph($"Valor total: R$ {FormatCurrency(contractData.TotalAmount)}"),
-                CreateParagraph($"Valor de entrada: R$ {FormatCurrency(contractData.EntryAmount)}"),
-                CreateParagraph($"Arco de baloes: {ToYesNo(contractData.HasBalloonArch)}"),
-                CreateParagraph($"Entrada paga: {ToYesNo(contractData.IsEntryPaid)}"),
-                CreateParagraph($"Observacoes: {contractData.Notes ?? "Nao informado."}"),
-                CreateParagraph(string.Empty),
-                CreateParagraph("Assinaturas", isBold: true),
-                CreateParagraph("Cliente: ___________________________"),
-                CreateParagraph("Empresa: ___________________________"),
-                CreateParagraph($"Data: {FormatDate(contractData.ContractDate)}"));
+            var body = new Body();
+            foreach (var paragraphLine in BuildContractParagraphLines(contractData))
+            {
+                body.AppendChild(CreateParagraph(paragraphLine.Text, paragraphLine.IsBold, paragraphLine.FontSizeHalfPoints));
+            }
 
             mainDocumentPart.Document.AppendChild(body);
             mainDocumentPart.Document.Save();
@@ -124,39 +103,27 @@ public sealed class ContractDocumentGenerator : IContractDocumentGenerator
                 {
                     page.Margin(28);
 
-                    page.Header()
-                        .Text("Contrato de Locacao de Decoracao")
-                        .SemiBold()
-                        .FontSize(20);
-
                     page.Content().Column(column =>
                     {
-                        column.Spacing(6);
-                        column.Item().Text($"Cliente: {contractData.CustomerName}");
-                        column.Item().Text($"Documento: {contractData.CustomerDocumentNumber}");
-                        column.Item().Text($"Telefone: {contractData.CustomerPhoneNumber}");
-                        column.Item().Text($"Endereco: {contractData.CustomerAddress}");
-                        column.Item().Text($"Bairro: {contractData.CustomerNeighborhood ?? "Nao informado"}");
-                        column.Item().Text($"Cidade: {contractData.CustomerCity ?? "Nao informado"}");
-                        column.Item().Text($"Tema: {contractData.KitThemeName}");
-                        column.Item().Text($"Categoria: {contractData.KitCategoryName}");
-                        column.Item().Text($"Periodo: {FormatDate(contractData.ReservationStartDate)} ate {FormatDate(contractData.ReservationEndDate)}");
-                        column.Item().Text($"Valor total: R$ {FormatCurrency(contractData.TotalAmount)}");
-                        column.Item().Text($"Valor de entrada: R$ {FormatCurrency(contractData.EntryAmount)}");
-                        column.Item().Text($"Arco de baloes: {ToYesNo(contractData.HasBalloonArch)}");
-                        column.Item().Text($"Entrada paga: {ToYesNo(contractData.IsEntryPaid)}");
-                        column.Item().Text($"Observacoes: {contractData.Notes ?? "Nao informado."}");
+                        column.Spacing(4);
 
-                        column.Item().PaddingTop(16).Text("Assinaturas").SemiBold();
-                        column.Item().Text("Cliente: ___________________________");
-                        column.Item().Text("Empresa: ___________________________");
-                        column.Item().Text($"Data: {FormatDate(contractData.ContractDate)}");
+                        foreach (var paragraphLine in BuildContractParagraphLines(contractData))
+                        {
+                            if (string.IsNullOrWhiteSpace(paragraphLine.Text))
+                            {
+                                column.Item().PaddingTop(4);
+                                continue;
+                            }
+
+                            var textDescriptor = column.Item().Text(paragraphLine.Text);
+                            if (paragraphLine.IsBold)
+                            {
+                                textDescriptor.SemiBold();
+                            }
+
+                            textDescriptor.FontSize(paragraphLine.FontSizePoints);
+                        }
                     });
-
-                    page.Footer()
-                        .AlignRight()
-                        .Text($"Gerado em {DateTime.Now:dd/MM/yyyy HH:mm}")
-                        .FontSize(10);
                 });
             })
             .GeneratePdf();
@@ -179,60 +146,172 @@ public sealed class ContractDocumentGenerator : IContractDocumentGenerator
 
     private static Dictionary<string, string> BuildTemplateReplacements(ContractData contractData)
     {
+        var formattedStartDate = FormatDate(contractData.ReservationStartDate);
+        var formattedEndDate = FormatDate(contractData.ReservationEndDate);
+        var formattedContractDate = FormatDate(contractData.ContractDate);
+        var formattedTotalAmount = FormatCurrency(contractData.TotalAmount);
+        var formattedEntryAmount = FormatCurrency(contractData.EntryAmount);
         var yesNoBalloonArch = ToYesNo(contractData.HasBalloonArch);
         var yesNoEntryPaid = ToYesNo(contractData.IsEntryPaid);
 
-        return new Dictionary<string, string>(StringComparer.Ordinal)
+        var replacements = new Dictionary<string, string>(StringComparer.Ordinal)
         {
             ["{{KIT_THEME_NAME}}"] = contractData.KitThemeName,
             ["{{KIT_CATEGORY_NAME}}"] = contractData.KitCategoryName,
-            ["{{RESERVATION_START_DATE}}"] = FormatDate(contractData.ReservationStartDate),
-            ["{{RESERVATION_END_DATE}}"] = FormatDate(contractData.ReservationEndDate),
+            ["{{RESERVATION_START_DATE}}"] = formattedStartDate,
+            ["{{RESERVATION_END_DATE}}"] = formattedEndDate,
             ["{{CUSTOMER_NAME}}"] = contractData.CustomerName,
             ["{{CUSTOMER_DOCUMENT_NUMBER}}"] = contractData.CustomerDocumentNumber,
             ["{{CUSTOMER_PHONE_NUMBER}}"] = contractData.CustomerPhoneNumber,
             ["{{CUSTOMER_ADDRESS}}"] = contractData.CustomerAddress,
             ["{{CUSTOMER_ADDRESS_LINE}}"] = contractData.CustomerAddress,
-            ["{{CUSTOMER_NEIGHBORHOOD}}"] = contractData.CustomerNeighborhood ?? "Nao informado",
-            ["{{CUSTOMER_CITY}}"] = contractData.CustomerCity ?? "Nao informado",
+            ["{{CUSTOMER_NEIGHBORHOOD}}"] = contractData.CustomerNeighborhood ?? "Não informado",
+            ["{{CUSTOMER_CITY}}"] = contractData.CustomerCity ?? "Não informado",
             ["{{NOTES}}"] = contractData.Notes ?? string.Empty,
             ["{{HAS_BALLOON_ARCH}}"] = yesNoBalloonArch,
             ["{{IS_ENTRY_PAID}}"] = yesNoEntryPaid,
-            ["{{CONTRACT_DATE}}"] = FormatDate(contractData.ContractDate),
-            ["{{TOTAL_AMOUNT}}"] = FormatCurrency(contractData.TotalAmount),
-            ["{{ENTRY_AMOUNT}}"] = FormatCurrency(contractData.EntryAmount),
+            ["{{CONTRACT_DATE}}"] = formattedContractDate,
+            ["{{TOTAL_AMOUNT}}"] = formattedTotalAmount,
+            ["{{ENTRY_AMOUNT}}"] = formattedEntryAmount,
             ["{{NOME_CLIENTE}}"] = contractData.CustomerName,
             ["{{DOCUMENTO_CLIENTE}}"] = contractData.CustomerDocumentNumber,
             ["{{TELEFONE_CLIENTE}}"] = contractData.CustomerPhoneNumber,
             ["{{ENDERECO_CLIENTE}}"] = contractData.CustomerAddress,
-            ["{{DATA_RETIRADA}}"] = FormatDate(contractData.ReservationStartDate),
-            ["{{DATA_DEVOLUCAO}}"] = FormatDate(contractData.ReservationEndDate),
+            ["{{DATA_RETIRADA}}"] = formattedStartDate,
+            ["{{DATA_DEVOLUCAO}}"] = formattedEndDate,
             ["{{TEMA_KIT}}"] = contractData.KitThemeName,
             ["{{CATEGORIA_KIT}}"] = contractData.KitCategoryName,
             ["{{ARCO_BALOES}}"] = yesNoBalloonArch,
-            ["{{ENTRADA_PAGA}}"] = yesNoEntryPaid
+            ["{{ENTRADA_PAGA}}"] = yesNoEntryPaid,
+
+            // Compatibilidade com template preenchido manualmente
+            ["Bruna Nagase Comenali"] = contractData.CustomerName,
+            ["40825890829"] = contractData.CustomerDocumentNumber,
+            ["Av Pedro Friggi, 3100"] = contractData.CustomerAddress,
+            ["Vista Verde"] = contractData.CustomerNeighborhood ?? "Não informado",
+            ["Sao Jose dos Campos"] = contractData.CustomerCity ?? "Não informado",
+            ["São José dos Campos"] = contractData.CustomerCity ?? "Não informado",
+            ["20/03/2026"] = formattedStartDate,
+            ["23/03/2026"] = formattedEndDate,
+            ["Safari"] = contractData.KitThemeName,
+            ["219,90"] = formattedTotalAmount,
+            ["109,95"] = formattedEntryAmount,
+            ["28/01/2026"] = formattedContractDate
         };
+
+        return replacements;
     }
 
-    private static void ReplaceTemplateTokens(MainDocumentPart mainDocumentPart, IReadOnlyDictionary<string, string> replacements)
+    private static void ReplaceTemplateTokens(Stream docxStream, IReadOnlyDictionary<string, string> replacements)
     {
-        var textNodes = mainDocumentPart.Document.Descendants<Text>().ToList();
+        docxStream.Position = 0;
+        using var archive = new ZipArchive(docxStream, ZipArchiveMode.Update, leaveOpen: true);
 
-        foreach (var textNode in textNodes)
+        var xmlEntryNames = archive.Entries
+            .Where(entry => entry.FullName.Equals("word/document.xml", StringComparison.OrdinalIgnoreCase)
+                            || (entry.FullName.StartsWith("word/header", StringComparison.OrdinalIgnoreCase) && entry.FullName.EndsWith(".xml", StringComparison.OrdinalIgnoreCase))
+                            || (entry.FullName.StartsWith("word/footer", StringComparison.OrdinalIgnoreCase) && entry.FullName.EndsWith(".xml", StringComparison.OrdinalIgnoreCase)))
+            .Select(entry => entry.FullName)
+            .ToList();
+
+        foreach (var xmlEntryName in xmlEntryNames)
         {
-            var currentText = textNode.Text;
-            if (string.IsNullOrEmpty(currentText))
+            var xmlEntry = archive.GetEntry(xmlEntryName);
+            if (xmlEntry is null)
             {
                 continue;
             }
 
-            foreach (var replacement in replacements)
+            string xmlContent;
+            using (var sourceStream = xmlEntry.Open())
+            using (var streamReader = new StreamReader(sourceStream, Encoding.UTF8, detectEncodingFromByteOrderMarks: true))
             {
-                currentText = currentText.Replace(replacement.Key, replacement.Value, StringComparison.Ordinal);
+                xmlContent = streamReader.ReadToEnd();
             }
 
-            textNode.Text = currentText;
+            var replacedXmlContent = ApplyReplacements(xmlContent, replacements);
+            if (string.Equals(xmlContent, replacedXmlContent, StringComparison.Ordinal))
+            {
+                continue;
+            }
+
+            xmlEntry.Delete();
+            var newXmlEntry = archive.CreateEntry(xmlEntryName, CompressionLevel.Optimal);
+            using var targetStream = newXmlEntry.Open();
+            using var streamWriter = new StreamWriter(targetStream, new UTF8Encoding(encoderShouldEmitUTF8Identifier: false));
+            streamWriter.Write(replacedXmlContent);
         }
+
+        docxStream.Position = 0;
+    }
+
+    private static string ApplyReplacements(string sourceText, IReadOnlyDictionary<string, string> replacements)
+    {
+        var targetText = sourceText;
+        foreach (var replacement in replacements)
+        {
+            targetText = targetText.Replace(replacement.Key, replacement.Value, StringComparison.Ordinal);
+        }
+
+        return targetText;
+    }
+
+    private static Dictionary<string, string> BuildEscapedTemplateReplacements(ContractData contractData)
+    {
+        return BuildTemplateReplacements(contractData).ToDictionary(
+            pair => pair.Key,
+            pair => SecurityElement.Escape(pair.Value) ?? string.Empty,
+            StringComparer.Ordinal);
+    }
+
+    private static List<ContractParagraphLine> BuildContractParagraphLines(ContractData contractData)
+    {
+        var lines = new List<ContractParagraphLine>
+        {
+            new("CONTRATO DE LOCAÇÃO DE DECORAÇÃO", true, "32", 16),
+            new(string.Empty),
+            new("CLIENTE:", true),
+            new($"Nome: {contractData.CustomerName}"),
+            new($"CPF: {contractData.CustomerDocumentNumber}"),
+            new($"Endereço: {contractData.CustomerAddress}"),
+            new($"Bairro: {contractData.CustomerNeighborhood ?? "Não informado"}"),
+            new($"Cidade: {contractData.CustomerCity ?? "Não informado"}"),
+            new($"Data da retirada: {FormatDate(contractData.ReservationStartDate)}"),
+            new("CLÁUSULAS", true)
+        };
+
+        lines.AddRange(BuildClauseLines(contractData.ReservationEndDate).Select(clause => new ContractParagraphLine(clause)));
+
+        lines.AddRange(
+        [
+            new("DECORAÇÃO ENTREGUE:", true),
+            new(contractData.KitThemeName),
+            new($"VALOR TOTAL: R$ {FormatCurrency(contractData.TotalAmount)}"),
+            new($"VALOR DE ENTRADA: R$ {FormatCurrency(contractData.EntryAmount)}"),
+            new("*É proibido o uso de vela faísca no bolo.*"),
+            new("Em caso de não devolução ou dano, será cobrado o valor vigente das peças."),
+            new("ASSINATURAS", true),
+            new("Cliente : ___________________________"),
+            new("Empresa : ___________________________"),
+            new($"Data: {FormatDate(contractData.ContractDate)}")
+        ]);
+
+        return lines;
+    }
+
+    private static IReadOnlyList<string> BuildClauseLines(DateOnly reservationEndDate)
+    {
+        return
+        [
+            "1. Não colocar cola quente, fita adesiva, grampo ou pregos na decoração.",
+            "2. Não furar o bolo fake para utilização de velas ou usar velas faísca no bolo.",
+            "3. Taxa de limpeza será cobrada se o material for entregue sujo (R$ 20,00 por item).",
+            $"4. A devolução da decoração deverá ocorrer até {FormatDate(reservationEndDate)} sob multa de R$ 100,00 por dia de atraso.",
+            "5. O transporte é de responsabilidade do cliente.",
+            "6. A reserva será confirmada mediante pagamento de 50% do valor.",
+            "7. Cancelamentos não geram reembolso, podendo remarcar em até 6 meses.",
+            "8. Não há troca de data com menos de 30 dias de antecedência."
+        ];
     }
 
     private static Paragraph CreateParagraph(string text, bool isBold = false, string fontSizeHalfPoints = "24")
@@ -251,7 +330,7 @@ public sealed class ContractDocumentGenerator : IContractDocumentGenerator
         => date.ToString("dd/MM/yyyy", PtBrCulture);
 
     private static string ToYesNo(bool value)
-        => value ? "Sim" : "Nao";
+        => value ? "Sim" : "Não";
 
     private static string FormatCurrency(decimal? value)
         => value.HasValue ? value.Value.ToString("N2", PtBrCulture) : "0,00";
@@ -286,4 +365,10 @@ public sealed class ContractDocumentGenerator : IContractDocumentGenerator
 
         return Path.Combine(Directory.GetCurrentDirectory(), _templateOptions.FilePath);
     }
+
+    private sealed record ContractParagraphLine(
+        string Text,
+        bool IsBold = false,
+        string FontSizeHalfPoints = "24",
+        int FontSizePoints = 12);
 }

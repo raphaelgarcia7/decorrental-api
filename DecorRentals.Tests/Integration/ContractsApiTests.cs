@@ -1,6 +1,9 @@
-﻿using System.Net;
+using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.IO.Compression;
+using System.Text;
+using System.Text.RegularExpressions;
 using Xunit;
 
 namespace DecorRental.Tests.Integration;
@@ -119,6 +122,12 @@ public sealed class ContractsApiTests : IClassFixture<DecorRentalApiFactory>
             docxResponse.Content.Headers.ContentType?.MediaType);
         var docxBytes = await docxResponse.Content.ReadAsByteArrayAsync();
         Assert.True(docxBytes.Length > 500);
+        var docxDocumentXml = ExtractDocumentXml(docxBytes);
+        var docxDocumentText = ExtractDocumentText(docxDocumentXml);
+        Assert.Contains("Cliente Contrato", docxDocumentText);
+        Assert.Contains("12345678900", docxDocumentText);
+        Assert.DoesNotContain("{{CUSTOMER_NAME}}", docxDocumentText, StringComparison.Ordinal);
+        Assert.DoesNotContain("{{CUSTOMER_DOCUMENT_NUMBER}}", docxDocumentText, StringComparison.Ordinal);
 
         var pdfResponse = await _httpClient.PostAsJsonAsync("/api/contracts/generate?format=pdf", request);
         Assert.Equal(HttpStatusCode.OK, pdfResponse.StatusCode);
@@ -184,6 +193,24 @@ public sealed class ContractsApiTests : IClassFixture<DecorRentalApiFactory>
 
         _httpClient.DefaultRequestHeaders.Authorization =
             new AuthenticationHeaderValue("Bearer", authResponse.AccessToken);
+    }
+
+    private static string ExtractDocumentXml(byte[] docxBytes)
+    {
+        using var memoryStream = new MemoryStream(docxBytes);
+        using var archive = new ZipArchive(memoryStream, ZipArchiveMode.Read, leaveOpen: false);
+        var documentXmlEntry = archive.GetEntry("word/document.xml")
+            ?? throw new InvalidOperationException("Arquivo DOCX invalido: documento principal nao encontrado.");
+
+        using var xmlStream = documentXmlEntry.Open();
+        using var streamReader = new StreamReader(xmlStream, Encoding.UTF8);
+        return streamReader.ReadToEnd();
+    }
+
+    private static string ExtractDocumentText(string documentXml)
+    {
+        var withoutTags = Regex.Replace(documentXml, "<[^>]+>", " ");
+        return System.Net.WebUtility.HtmlDecode(withoutTags);
     }
 
     private sealed record AuthTokenRequest(string Username, string Password);
