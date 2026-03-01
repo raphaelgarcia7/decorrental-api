@@ -10,6 +10,14 @@ public class Reservation
     private const int CustomerDocumentNumberMaxLength = 40;
     private const int CustomerPhoneNumberMaxLength = 30;
     private const int CustomerAddressMaxLength = 250;
+    private const int CustomerZipCodeLength = 8;
+    private const int CustomerStreetMaxLength = 180;
+    private const int CustomerNumberMaxLength = 20;
+    private const int CustomerComplementMaxLength = 120;
+    private const int CustomerNeighborhoodMaxLength = 120;
+    private const int CustomerCityMaxLength = 120;
+    private const int CustomerStateLength = 2;
+    private const int CustomerReferenceMaxLength = 250;
     private const int NotesMaxLength = 500;
 
     private readonly List<ReservationItem> _items = new();
@@ -25,6 +33,14 @@ public class Reservation
     public string CustomerDocumentNumber { get; private set; } = null!;
     public string CustomerPhoneNumber { get; private set; } = null!;
     public string CustomerAddress { get; private set; } = null!;
+    public string? CustomerZipCode { get; private set; }
+    public string? CustomerStreet { get; private set; }
+    public string? CustomerNumber { get; private set; }
+    public string? CustomerComplement { get; private set; }
+    public string? CustomerNeighborhood { get; private set; }
+    public string? CustomerCity { get; private set; }
+    public string? CustomerState { get; private set; }
+    public string? CustomerReference { get; private set; }
     public string? Notes { get; private set; }
     public bool HasBalloonArch { get; private set; }
     public bool IsEntryPaid { get; private set; }
@@ -40,6 +56,14 @@ public class Reservation
         string customerDocumentNumber,
         string customerPhoneNumber,
         string customerAddress,
+        string? customerZipCode,
+        string? customerStreet,
+        string? customerNumber,
+        string? customerComplement,
+        string? customerNeighborhood,
+        string? customerCity,
+        string? customerState,
+        string? customerReference,
         string? notes,
         bool hasBalloonArch,
         bool isEntryPaid)
@@ -59,6 +83,51 @@ public class Reservation
             customerDocumentNumber,
             customerPhoneNumber,
             customerAddress,
+            customerZipCode,
+            customerStreet,
+            customerNumber,
+            customerComplement,
+            customerNeighborhood,
+            customerCity,
+            customerState,
+            customerReference,
+            notes,
+            hasBalloonArch,
+            isEntryPaid);
+    }
+
+    public static Reservation Create(
+        Guid kitThemeId,
+        KitCategory category,
+        DateRange period,
+        bool isStockOverride,
+        string? stockOverrideReason,
+        string customerName,
+        string customerDocumentNumber,
+        string customerPhoneNumber,
+        string customerAddress,
+        string? notes,
+        bool hasBalloonArch,
+        bool isEntryPaid)
+    {
+        return Create(
+            kitThemeId,
+            category,
+            period,
+            isStockOverride,
+            stockOverrideReason,
+            customerName,
+            customerDocumentNumber,
+            customerPhoneNumber,
+            customerAddress,
+            customerZipCode: null,
+            customerStreet: null,
+            customerNumber: null,
+            customerComplement: null,
+            customerNeighborhood: null,
+            customerCity: null,
+            customerState: null,
+            customerReference: null,
             notes,
             hasBalloonArch,
             isEntryPaid);
@@ -76,6 +145,14 @@ public class Reservation
         string customerDocumentNumber,
         string customerPhoneNumber,
         string customerAddress,
+        string? customerZipCode,
+        string? customerStreet,
+        string? customerNumber,
+        string? customerComplement,
+        string? customerNeighborhood,
+        string? customerCity,
+        string? customerState,
+        string? customerReference,
         string? notes,
         bool hasBalloonArch,
         bool isEntryPaid)
@@ -88,7 +165,20 @@ public class Reservation
         var normalizedCustomerName = NormalizeAndValidateCustomerName(customerName);
         var normalizedDocumentNumber = NormalizeAndValidateDocumentNumber(customerDocumentNumber);
         var normalizedPhoneNumber = NormalizeAndValidatePhoneNumber(customerPhoneNumber);
-        var normalizedAddress = NormalizeAndValidateAddress(customerAddress);
+        var normalizedStructuredAddress = NormalizeAndValidateStructuredAddress(
+            customerZipCode,
+            customerStreet,
+            customerNumber,
+            customerComplement,
+            customerNeighborhood,
+            customerCity,
+            customerState,
+            customerReference);
+        var normalizedAddress = NormalizeAndValidateAddress(
+            customerAddress,
+            normalizedStructuredAddress.Street,
+            normalizedStructuredAddress.Number,
+            normalizedStructuredAddress.Complement);
         var normalizedNotes = NormalizeAndValidateNotes(notes);
         var normalizedStockOverrideReason = NormalizeAndValidateStockOverrideReason(
             isStockOverride,
@@ -105,6 +195,14 @@ public class Reservation
         CustomerDocumentNumber = normalizedDocumentNumber;
         CustomerPhoneNumber = normalizedPhoneNumber;
         CustomerAddress = normalizedAddress;
+        CustomerZipCode = normalizedStructuredAddress.ZipCode;
+        CustomerStreet = normalizedStructuredAddress.Street;
+        CustomerNumber = normalizedStructuredAddress.Number;
+        CustomerComplement = normalizedStructuredAddress.Complement;
+        CustomerNeighborhood = normalizedStructuredAddress.Neighborhood;
+        CustomerCity = normalizedStructuredAddress.City;
+        CustomerState = normalizedStructuredAddress.State;
+        CustomerReference = normalizedStructuredAddress.Reference;
         Notes = normalizedNotes;
         HasBalloonArch = hasBalloonArch;
         IsEntryPaid = isEntryPaid;
@@ -121,6 +219,14 @@ public class Reservation
         string customerDocumentNumber,
         string customerPhoneNumber,
         string customerAddress,
+        string? customerZipCode,
+        string? customerStreet,
+        string? customerNumber,
+        string? customerComplement,
+        string? customerNeighborhood,
+        string? customerCity,
+        string? customerState,
+        string? customerReference,
         string? notes,
         bool hasBalloonArch,
         bool isEntryPaid)
@@ -134,7 +240,20 @@ public class Reservation
         var normalizedCustomerName = NormalizeAndValidateCustomerName(customerName);
         var normalizedDocumentNumber = NormalizeAndValidateDocumentNumber(customerDocumentNumber);
         var normalizedPhoneNumber = NormalizeAndValidatePhoneNumber(customerPhoneNumber);
-        var normalizedAddress = NormalizeAndValidateAddress(customerAddress);
+        var normalizedStructuredAddress = NormalizeAndValidateStructuredAddress(
+            customerZipCode,
+            customerStreet,
+            customerNumber,
+            customerComplement,
+            customerNeighborhood,
+            customerCity,
+            customerState,
+            customerReference);
+        var normalizedAddress = NormalizeAndValidateAddress(
+            customerAddress,
+            normalizedStructuredAddress.Street,
+            normalizedStructuredAddress.Number,
+            normalizedStructuredAddress.Complement);
         var normalizedNotes = NormalizeAndValidateNotes(notes);
         var normalizedStockOverrideReason = NormalizeAndValidateStockOverrideReason(
             isStockOverride,
@@ -148,12 +267,55 @@ public class Reservation
         CustomerDocumentNumber = normalizedDocumentNumber;
         CustomerPhoneNumber = normalizedPhoneNumber;
         CustomerAddress = normalizedAddress;
+        CustomerZipCode = normalizedStructuredAddress.ZipCode;
+        CustomerStreet = normalizedStructuredAddress.Street;
+        CustomerNumber = normalizedStructuredAddress.Number;
+        CustomerComplement = normalizedStructuredAddress.Complement;
+        CustomerNeighborhood = normalizedStructuredAddress.Neighborhood;
+        CustomerCity = normalizedStructuredAddress.City;
+        CustomerState = normalizedStructuredAddress.State;
+        CustomerReference = normalizedStructuredAddress.Reference;
         Notes = normalizedNotes;
         HasBalloonArch = hasBalloonArch;
         IsEntryPaid = isEntryPaid;
 
         _items.Clear();
         _items.AddRange(updatedItems);
+    }
+
+    public void Update(
+        KitCategory category,
+        DateRange period,
+        bool isStockOverride,
+        string? stockOverrideReason,
+        string customerName,
+        string customerDocumentNumber,
+        string customerPhoneNumber,
+        string customerAddress,
+        string? notes,
+        bool hasBalloonArch,
+        bool isEntryPaid)
+    {
+        Update(
+            category,
+            period,
+            isStockOverride,
+            stockOverrideReason,
+            customerName,
+            customerDocumentNumber,
+            customerPhoneNumber,
+            customerAddress,
+            customerZipCode: null,
+            customerStreet: null,
+            customerNumber: null,
+            customerComplement: null,
+            customerNeighborhood: null,
+            customerCity: null,
+            customerState: null,
+            customerReference: null,
+            notes,
+            hasBalloonArch,
+            isEntryPaid);
     }
 
     public void Cancel()
@@ -231,20 +393,124 @@ public class Reservation
         return normalizedPhoneNumber;
     }
 
-    private static string NormalizeAndValidateAddress(string customerAddress)
+    private static string NormalizeAndValidateAddress(
+        string customerAddress,
+        string? customerStreet,
+        string? customerNumber,
+        string? customerComplement)
     {
-        if (string.IsNullOrWhiteSpace(customerAddress))
+        var normalizedAddress = string.IsNullOrWhiteSpace(customerAddress)
+            ? BuildAddressFromStructuredFields(customerStreet, customerNumber, customerComplement)
+            : customerAddress.Trim();
+
+        if (string.IsNullOrWhiteSpace(normalizedAddress))
         {
             throw new DomainException("O endereco do cliente e obrigatorio.");
         }
 
-        var normalizedAddress = customerAddress.Trim();
         if (normalizedAddress.Length > CustomerAddressMaxLength)
         {
             throw new DomainException($"O endereco do cliente deve ter no maximo {CustomerAddressMaxLength} caracteres.");
         }
 
         return normalizedAddress;
+    }
+
+    private static string BuildAddressFromStructuredFields(
+        string? customerStreet,
+        string? customerNumber,
+        string? customerComplement)
+    {
+        if (string.IsNullOrWhiteSpace(customerStreet) || string.IsNullOrWhiteSpace(customerNumber))
+        {
+            return string.Empty;
+        }
+
+        var addressLine = $"{customerStreet}, {customerNumber}";
+        if (!string.IsNullOrWhiteSpace(customerComplement))
+        {
+            addressLine = $"{addressLine} - {customerComplement}";
+        }
+
+        return addressLine;
+    }
+
+    private static StructuredAddress NormalizeAndValidateStructuredAddress(
+        string? customerZipCode,
+        string? customerStreet,
+        string? customerNumber,
+        string? customerComplement,
+        string? customerNeighborhood,
+        string? customerCity,
+        string? customerState,
+        string? customerReference)
+    {
+        var normalizedZipCode = NormalizeAndValidateZipCode(customerZipCode);
+        var normalizedStreet = NormalizeOptionalField(customerStreet, CustomerStreetMaxLength, "logradouro");
+        var normalizedNumber = NormalizeOptionalField(customerNumber, CustomerNumberMaxLength, "numero");
+        var normalizedComplement = NormalizeOptionalField(customerComplement, CustomerComplementMaxLength, "complemento");
+        var normalizedNeighborhood = NormalizeOptionalField(customerNeighborhood, CustomerNeighborhoodMaxLength, "bairro");
+        var normalizedCity = NormalizeOptionalField(customerCity, CustomerCityMaxLength, "cidade");
+        var normalizedState = NormalizeAndValidateState(customerState);
+        var normalizedReference = NormalizeOptionalField(customerReference, CustomerReferenceMaxLength, "referencia");
+
+        return new StructuredAddress(
+            normalizedZipCode,
+            normalizedStreet,
+            normalizedNumber,
+            normalizedComplement,
+            normalizedNeighborhood,
+            normalizedCity,
+            normalizedState,
+            normalizedReference);
+    }
+
+    private static string? NormalizeAndValidateZipCode(string? customerZipCode)
+    {
+        if (string.IsNullOrWhiteSpace(customerZipCode))
+        {
+            return null;
+        }
+
+        var normalizedZipCode = new string(customerZipCode.Where(char.IsDigit).ToArray());
+        if (normalizedZipCode.Length != CustomerZipCodeLength)
+        {
+            throw new DomainException($"O CEP deve conter exatamente {CustomerZipCodeLength} digitos.");
+        }
+
+        return normalizedZipCode;
+    }
+
+    private static string? NormalizeAndValidateState(string? customerState)
+    {
+        if (string.IsNullOrWhiteSpace(customerState))
+        {
+            return null;
+        }
+
+        var normalizedState = customerState.Trim().ToUpperInvariant();
+        if (normalizedState.Length != CustomerStateLength)
+        {
+            throw new DomainException($"A UF deve conter exatamente {CustomerStateLength} caracteres.");
+        }
+
+        return normalizedState;
+    }
+
+    private static string? NormalizeOptionalField(string? value, int maxLength, string fieldName)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return null;
+        }
+
+        var normalizedValue = value.Trim();
+        if (normalizedValue.Length > maxLength)
+        {
+            throw new DomainException($"O campo {fieldName} deve ter no maximo {maxLength} caracteres.");
+        }
+
+        return normalizedValue;
     }
 
     private static string? NormalizeAndValidateNotes(string? notes)
@@ -279,4 +545,14 @@ public class Reservation
     }
 
     private Reservation() { }
+
+    private sealed record StructuredAddress(
+        string? ZipCode,
+        string? Street,
+        string? Number,
+        string? Complement,
+        string? Neighborhood,
+        string? City,
+        string? State,
+        string? Reference);
 }

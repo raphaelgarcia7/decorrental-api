@@ -36,6 +36,30 @@ public sealed class ReservationConfiguration : IEntityTypeConfiguration<Reservat
             .IsRequired()
             .HasMaxLength(250);
 
+        builder.Property(reservation => reservation.CustomerZipCode)
+            .HasMaxLength(8);
+
+        builder.Property(reservation => reservation.CustomerStreet)
+            .HasMaxLength(180);
+
+        builder.Property(reservation => reservation.CustomerNumber)
+            .HasMaxLength(20);
+
+        builder.Property(reservation => reservation.CustomerComplement)
+            .HasMaxLength(120);
+
+        builder.Property(reservation => reservation.CustomerNeighborhood)
+            .HasMaxLength(120);
+
+        builder.Property(reservation => reservation.CustomerCity)
+            .HasMaxLength(120);
+
+        builder.Property(reservation => reservation.CustomerState)
+            .HasMaxLength(2);
+
+        builder.Property(reservation => reservation.CustomerReference)
+            .HasMaxLength(250);
+
         builder.Property(reservation => reservation.Notes)
             .HasMaxLength(500);
 

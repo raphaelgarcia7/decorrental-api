@@ -22,6 +22,7 @@ using DecorRental.Application.UseCases.UpdateReservation;
 using DecorRental.Application.UseCases.UpdateItemStock;
 using DecorRental.Domain.Repositories;
 using DecorRental.Infrastructure.Documents;
+using DecorRental.Infrastructure.AddressLookup;
 using DecorRental.Infrastructure.Messaging;
 using DecorRental.Infrastructure.Persistence;
 using DecorRental.Infrastructure.Repositories;
@@ -126,6 +127,11 @@ builder.Services.AddScoped<IKitCategoryRepository, EfKitCategoryRepository>();
 builder.Services.AddScoped<IItemTypeRepository, EfItemTypeRepository>();
 builder.Services.AddScoped<IReservationQueryRepository, EfReservationQueryRepository>();
 builder.Services.AddScoped<IContractDocumentGenerator, ContractDocumentGenerator>();
+builder.Services.AddHttpClient<IAddressLookupService, ViaCepAddressLookupService>(httpClient =>
+{
+    httpClient.BaseAddress = new Uri("https://viacep.com.br/ws/");
+    httpClient.Timeout = TimeSpan.FromSeconds(5);
+});
 builder.Services.AddScoped<CreateKitHandler>();
 builder.Services.AddScoped<GetKitByIdHandler>();
 builder.Services.AddScoped<GetKitsHandler>();
