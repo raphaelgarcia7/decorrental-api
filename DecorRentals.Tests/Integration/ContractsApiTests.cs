@@ -50,7 +50,9 @@ public sealed class ContractsApiTests : IClassFixture<DecorRentalApiFactory>
         Assert.Equal("Bruna Comenali", contractData.CustomerName);
         Assert.Equal("40825890829", contractData.CustomerDocumentNumber);
         Assert.Equal("12999990000", contractData.CustomerPhoneNumber);
-        Assert.Equal("Av Pedro Friggi, 3100", contractData.CustomerAddress);
+        Assert.Equal("Av Pedro Friggi", contractData.CustomerAddress);
+        Assert.Equal("3100", contractData.CustomerNeighborhood);
+        Assert.Null(contractData.CustomerCity);
         Assert.Equal("Turma da Monica", contractData.KitThemeName);
         Assert.Equal("Basica", contractData.KitCategoryName);
         Assert.True(contractData.HasBalloonArch);
@@ -91,20 +93,24 @@ public sealed class ContractsApiTests : IClassFixture<DecorRentalApiFactory>
         Assert.NotNull(contractData);
 
         var request = new ContractDataRequest(
-            contractData.KitThemeId,
-            contractData.ReservationId,
-            contractData.KitThemeName,
-            contractData.KitCategoryName,
-            contractData.ReservationStartDate,
-            contractData.ReservationEndDate,
-            contractData.CustomerName,
-            contractData.CustomerDocumentNumber,
-            contractData.CustomerPhoneNumber,
-            contractData.CustomerAddress,
-            contractData.Notes,
-            contractData.HasBalloonArch,
-            contractData.IsEntryPaid,
-            contractData.ContractDate);
+            KitThemeId: contractData.KitThemeId,
+            ReservationId: contractData.ReservationId,
+            KitThemeName: contractData.KitThemeName,
+            KitCategoryName: contractData.KitCategoryName,
+            ReservationStartDate: contractData.ReservationStartDate,
+            ReservationEndDate: contractData.ReservationEndDate,
+            CustomerName: contractData.CustomerName,
+            CustomerDocumentNumber: contractData.CustomerDocumentNumber,
+            CustomerPhoneNumber: contractData.CustomerPhoneNumber,
+            CustomerAddress: contractData.CustomerAddress,
+            CustomerNeighborhood: contractData.CustomerNeighborhood,
+            CustomerCity: contractData.CustomerCity,
+            Notes: contractData.Notes,
+            HasBalloonArch: contractData.HasBalloonArch,
+            IsEntryPaid: contractData.IsEntryPaid,
+            ContractDate: contractData.ContractDate,
+            TotalAmount: contractData.TotalAmount,
+            EntryAmount: contractData.EntryAmount);
 
         var docxResponse = await _httpClient.PostAsJsonAsync("/api/contracts/generate?format=docx", request);
         Assert.Equal(HttpStatusCode.OK, docxResponse.StatusCode);
@@ -225,10 +231,14 @@ public sealed class ContractsApiTests : IClassFixture<DecorRentalApiFactory>
         string CustomerDocumentNumber,
         string CustomerPhoneNumber,
         string CustomerAddress,
-        string? Notes,
-        bool HasBalloonArch,
-        bool IsEntryPaid,
-        string ContractDate);
+        string? CustomerNeighborhood = null,
+        string? CustomerCity = null,
+        string? Notes = null,
+        bool HasBalloonArch = false,
+        bool IsEntryPaid = false,
+        string ContractDate = "",
+        decimal? TotalAmount = null,
+        decimal? EntryAmount = null);
 
     private sealed record ContractDataRequest(
         Guid KitThemeId,
@@ -241,8 +251,12 @@ public sealed class ContractsApiTests : IClassFixture<DecorRentalApiFactory>
         string CustomerDocumentNumber,
         string CustomerPhoneNumber,
         string CustomerAddress,
-        string? Notes,
-        bool HasBalloonArch,
-        bool IsEntryPaid,
-        string ContractDate);
+        string? CustomerNeighborhood = null,
+        string? CustomerCity = null,
+        string? Notes = null,
+        bool HasBalloonArch = false,
+        bool IsEntryPaid = false,
+        string ContractDate = "",
+        decimal? TotalAmount = null,
+        decimal? EntryAmount = null);
 }

@@ -186,4 +186,5 @@ dotnet test
 - Postman: `DecorRental.postman_collection.json`
 - HTTP requests: `DecorRental.Api/decorrental-api.http`
 - Decisões técnicas: `docs/technical-decisions.md`
+- Template de contrato: `DecorRental.Api/Templates/contrato_template.docx`
 

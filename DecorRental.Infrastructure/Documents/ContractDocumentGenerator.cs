@@ -47,7 +47,7 @@ public sealed class ContractDocumentGenerator : IContractDocumentGenerator
 
     private async Task<byte[]> GenerateDocxAsync(ContractData contractData, CancellationToken cancellationToken)
     {
-        var templateFilePath = _templateOptions.FilePath;
+        var templateFilePath = ResolveTemplateFilePath();
         if (!string.IsNullOrWhiteSpace(templateFilePath) && File.Exists(templateFilePath))
         {
             return await GenerateDocxFromTemplateAsync(contractData, templateFilePath, cancellationToken);
@@ -93,9 +93,13 @@ public sealed class ContractDocumentGenerator : IContractDocumentGenerator
                 CreateParagraph($"Documento: {contractData.CustomerDocumentNumber}"),
                 CreateParagraph($"Telefone: {contractData.CustomerPhoneNumber}"),
                 CreateParagraph($"Endereco: {contractData.CustomerAddress}"),
+                CreateParagraph($"Bairro: {contractData.CustomerNeighborhood ?? "Nao informado"}"),
+                CreateParagraph($"Cidade: {contractData.CustomerCity ?? "Nao informado"}"),
                 CreateParagraph($"Tema: {contractData.KitThemeName}"),
                 CreateParagraph($"Categoria: {contractData.KitCategoryName}"),
                 CreateParagraph($"Periodo: {FormatDate(contractData.ReservationStartDate)} ate {FormatDate(contractData.ReservationEndDate)}"),
+                CreateParagraph($"Valor total: R$ {FormatCurrency(contractData.TotalAmount)}"),
+                CreateParagraph($"Valor de entrada: R$ {FormatCurrency(contractData.EntryAmount)}"),
                 CreateParagraph($"Arco de baloes: {ToYesNo(contractData.HasBalloonArch)}"),
                 CreateParagraph($"Entrada paga: {ToYesNo(contractData.IsEntryPaid)}"),
                 CreateParagraph($"Observacoes: {contractData.Notes ?? "Nao informado."}"),
@@ -132,9 +136,13 @@ public sealed class ContractDocumentGenerator : IContractDocumentGenerator
                         column.Item().Text($"Documento: {contractData.CustomerDocumentNumber}");
                         column.Item().Text($"Telefone: {contractData.CustomerPhoneNumber}");
                         column.Item().Text($"Endereco: {contractData.CustomerAddress}");
+                        column.Item().Text($"Bairro: {contractData.CustomerNeighborhood ?? "Nao informado"}");
+                        column.Item().Text($"Cidade: {contractData.CustomerCity ?? "Nao informado"}");
                         column.Item().Text($"Tema: {contractData.KitThemeName}");
                         column.Item().Text($"Categoria: {contractData.KitCategoryName}");
                         column.Item().Text($"Periodo: {FormatDate(contractData.ReservationStartDate)} ate {FormatDate(contractData.ReservationEndDate)}");
+                        column.Item().Text($"Valor total: R$ {FormatCurrency(contractData.TotalAmount)}");
+                        column.Item().Text($"Valor de entrada: R$ {FormatCurrency(contractData.EntryAmount)}");
                         column.Item().Text($"Arco de baloes: {ToYesNo(contractData.HasBalloonArch)}");
                         column.Item().Text($"Entrada paga: {ToYesNo(contractData.IsEntryPaid)}");
                         column.Item().Text($"Observacoes: {contractData.Notes ?? "Nao informado."}");
@@ -184,10 +192,15 @@ public sealed class ContractDocumentGenerator : IContractDocumentGenerator
             ["{{CUSTOMER_DOCUMENT_NUMBER}}"] = contractData.CustomerDocumentNumber,
             ["{{CUSTOMER_PHONE_NUMBER}}"] = contractData.CustomerPhoneNumber,
             ["{{CUSTOMER_ADDRESS}}"] = contractData.CustomerAddress,
+            ["{{CUSTOMER_ADDRESS_LINE}}"] = contractData.CustomerAddress,
+            ["{{CUSTOMER_NEIGHBORHOOD}}"] = contractData.CustomerNeighborhood ?? "Nao informado",
+            ["{{CUSTOMER_CITY}}"] = contractData.CustomerCity ?? "Nao informado",
             ["{{NOTES}}"] = contractData.Notes ?? string.Empty,
             ["{{HAS_BALLOON_ARCH}}"] = yesNoBalloonArch,
             ["{{IS_ENTRY_PAID}}"] = yesNoEntryPaid,
             ["{{CONTRACT_DATE}}"] = FormatDate(contractData.ContractDate),
+            ["{{TOTAL_AMOUNT}}"] = FormatCurrency(contractData.TotalAmount),
+            ["{{ENTRY_AMOUNT}}"] = FormatCurrency(contractData.EntryAmount),
             ["{{NOME_CLIENTE}}"] = contractData.CustomerName,
             ["{{DOCUMENTO_CLIENTE}}"] = contractData.CustomerDocumentNumber,
             ["{{TELEFONE_CLIENTE}}"] = contractData.CustomerPhoneNumber,
@@ -240,6 +253,9 @@ public sealed class ContractDocumentGenerator : IContractDocumentGenerator
     private static string ToYesNo(bool value)
         => value ? "Sim" : "Nao";
 
+    private static string FormatCurrency(decimal? value)
+        => value.HasValue ? value.Value.ToString("N2", PtBrCulture) : "0,00";
+
     private static string RemoveDiacritics(string value)
     {
         var normalized = value.Normalize(NormalizationForm.FormD);
@@ -248,5 +264,26 @@ public sealed class ContractDocumentGenerator : IContractDocumentGenerator
             .ToArray();
 
         return new string(filtered).Normalize(NormalizationForm.FormC);
+    }
+
+    private string ResolveTemplateFilePath()
+    {
+        if (string.IsNullOrWhiteSpace(_templateOptions.FilePath))
+        {
+            return string.Empty;
+        }
+
+        if (Path.IsPathRooted(_templateOptions.FilePath))
+        {
+            return _templateOptions.FilePath;
+        }
+
+        var baseDirectoryPath = Path.Combine(AppContext.BaseDirectory, _templateOptions.FilePath);
+        if (File.Exists(baseDirectoryPath))
+        {
+            return baseDirectoryPath;
+        }
+
+        return Path.Combine(Directory.GetCurrentDirectory(), _templateOptions.FilePath);
     }
 }

@@ -11,10 +11,14 @@ public sealed record ContractDataRequest(
     string CustomerDocumentNumber,
     string CustomerPhoneNumber,
     string CustomerAddress,
-    string? Notes,
-    bool HasBalloonArch,
-    bool IsEntryPaid,
-    DateOnly ContractDate);
+    string? CustomerNeighborhood = null,
+    string? CustomerCity = null,
+    string? Notes = null,
+    bool HasBalloonArch = false,
+    bool IsEntryPaid = false,
+    DateOnly ContractDate = default,
+    decimal? TotalAmount = null,
+    decimal? EntryAmount = null);
 
 public sealed record ContractDataResponse(
     Guid KitThemeId,
@@ -27,7 +31,11 @@ public sealed record ContractDataResponse(
     string CustomerDocumentNumber,
     string CustomerPhoneNumber,
     string CustomerAddress,
-    string? Notes,
-    bool HasBalloonArch,
-    bool IsEntryPaid,
-    DateOnly ContractDate);
+    string? CustomerNeighborhood = null,
+    string? CustomerCity = null,
+    string? Notes = null,
+    bool HasBalloonArch = false,
+    bool IsEntryPaid = false,
+    DateOnly ContractDate = default,
+    decimal? TotalAmount = null,
+    decimal? EntryAmount = null);

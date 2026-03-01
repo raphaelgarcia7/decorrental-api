@@ -11,7 +11,11 @@ public sealed record ContractData(
     string CustomerDocumentNumber,
     string CustomerPhoneNumber,
     string CustomerAddress,
+    string? CustomerNeighborhood,
+    string? CustomerCity,
     string? Notes,
     bool HasBalloonArch,
     bool IsEntryPaid,
-    DateOnly ContractDate);
+    DateOnly ContractDate,
+    decimal? TotalAmount = null,
+    decimal? EntryAmount = null);
