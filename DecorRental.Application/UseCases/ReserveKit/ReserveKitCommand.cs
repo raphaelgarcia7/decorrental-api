@@ -13,4 +13,12 @@ public sealed record ReserveKitCommand(
     string CustomerAddress,
     string? Notes,
     bool HasBalloonArch,
-    bool IsEntryPaid);
+    bool IsEntryPaid,
+    string? CustomerZipCode = null,
+    string? CustomerStreet = null,
+    string? CustomerNumber = null,
+    string? CustomerComplement = null,
+    string? CustomerNeighborhood = null,
+    string? CustomerCity = null,
+    string? CustomerState = null,
+    string? CustomerReference = null);

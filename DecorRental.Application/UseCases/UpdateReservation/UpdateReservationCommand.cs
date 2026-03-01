@@ -14,4 +14,12 @@ public sealed record UpdateReservationCommand(
     string CustomerAddress = "",
     string? Notes = null,
     bool HasBalloonArch = false,
-    bool IsEntryPaid = false);
+    bool IsEntryPaid = false,
+    string? CustomerZipCode = null,
+    string? CustomerStreet = null,
+    string? CustomerNumber = null,
+    string? CustomerComplement = null,
+    string? CustomerNeighborhood = null,
+    string? CustomerCity = null,
+    string? CustomerState = null,
+    string? CustomerReference = null);

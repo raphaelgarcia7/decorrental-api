@@ -31,6 +31,14 @@ public class KitTheme
         string customerDocumentNumber,
         string customerPhoneNumber,
         string customerAddress,
+        string? customerZipCode,
+        string? customerStreet,
+        string? customerNumber,
+        string? customerComplement,
+        string? customerNeighborhood,
+        string? customerCity,
+        string? customerState,
+        string? customerReference,
         string? notes,
         bool hasBalloonArch,
         bool isEntryPaid)
@@ -55,12 +63,55 @@ public class KitTheme
             customerDocumentNumber,
             customerPhoneNumber,
             customerAddress,
+            customerZipCode,
+            customerStreet,
+            customerNumber,
+            customerComplement,
+            customerNeighborhood,
+            customerCity,
+            customerState,
+            customerReference,
             notes,
             hasBalloonArch,
             isEntryPaid);
         _reservations.Add(reservation);
 
         return reservation;
+    }
+
+    public Reservation Reserve(
+        KitCategory category,
+        DateRange period,
+        bool isStockOverride,
+        string? stockOverrideReason,
+        string customerName,
+        string customerDocumentNumber,
+        string customerPhoneNumber,
+        string customerAddress,
+        string? notes,
+        bool hasBalloonArch,
+        bool isEntryPaid)
+    {
+        return Reserve(
+            category,
+            period,
+            isStockOverride,
+            stockOverrideReason,
+            customerName,
+            customerDocumentNumber,
+            customerPhoneNumber,
+            customerAddress,
+            customerZipCode: null,
+            customerStreet: null,
+            customerNumber: null,
+            customerComplement: null,
+            customerNeighborhood: null,
+            customerCity: null,
+            customerState: null,
+            customerReference: null,
+            notes,
+            hasBalloonArch,
+            isEntryPaid);
     }
 
     public Reservation CancelReservation(Guid reservationId)
@@ -85,6 +136,14 @@ public class KitTheme
         string customerDocumentNumber,
         string customerPhoneNumber,
         string customerAddress,
+        string? customerZipCode,
+        string? customerStreet,
+        string? customerNumber,
+        string? customerComplement,
+        string? customerNeighborhood,
+        string? customerCity,
+        string? customerState,
+        string? customerReference,
         string? notes,
         bool hasBalloonArch,
         bool isEntryPaid)
@@ -104,11 +163,56 @@ public class KitTheme
             customerDocumentNumber,
             customerPhoneNumber,
             customerAddress,
+            customerZipCode,
+            customerStreet,
+            customerNumber,
+            customerComplement,
+            customerNeighborhood,
+            customerCity,
+            customerState,
+            customerReference,
             notes,
             hasBalloonArch,
             isEntryPaid);
 
         return reservation;
+    }
+
+    public Reservation UpdateReservation(
+        Guid reservationId,
+        KitCategory category,
+        DateRange period,
+        bool isStockOverride,
+        string? stockOverrideReason,
+        string customerName,
+        string customerDocumentNumber,
+        string customerPhoneNumber,
+        string customerAddress,
+        string? notes,
+        bool hasBalloonArch,
+        bool isEntryPaid)
+    {
+        return UpdateReservation(
+            reservationId,
+            category,
+            period,
+            isStockOverride,
+            stockOverrideReason,
+            customerName,
+            customerDocumentNumber,
+            customerPhoneNumber,
+            customerAddress,
+            customerZipCode: null,
+            customerStreet: null,
+            customerNumber: null,
+            customerComplement: null,
+            customerNeighborhood: null,
+            customerCity: null,
+            customerState: null,
+            customerReference: null,
+            notes,
+            hasBalloonArch,
+            isEntryPaid);
     }
 
     private KitTheme() { }

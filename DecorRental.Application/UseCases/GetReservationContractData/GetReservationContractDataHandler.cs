@@ -30,7 +30,14 @@ public sealed class GetReservationContractDataHandler
         var category = await _kitCategoryRepository.GetByIdAsync(reservation.KitCategoryId, cancellationToken)
             ?? throw new NotFoundException("Categoria nao encontrada.");
 
-        var (addressLine, neighborhood, city) = SplitAddress(reservation.CustomerAddress);
+        var (legacyAddressLine, legacyNeighborhood, legacyCity) = SplitAddress(reservation.CustomerAddress);
+        var addressLine = BuildAddressLine(
+            reservation.CustomerStreet,
+            reservation.CustomerNumber,
+            reservation.CustomerComplement,
+            legacyAddressLine);
+        var neighborhood = reservation.CustomerNeighborhood ?? legacyNeighborhood;
+        var city = reservation.CustomerCity ?? legacyCity;
 
         return new ContractData(
             kitTheme.Id,
@@ -43,6 +50,12 @@ public sealed class GetReservationContractDataHandler
             reservation.CustomerDocumentNumber,
             reservation.CustomerPhoneNumber,
             addressLine,
+            reservation.CustomerZipCode,
+            reservation.CustomerStreet,
+            reservation.CustomerNumber,
+            reservation.CustomerComplement,
+            reservation.CustomerState,
+            reservation.CustomerReference,
             neighborhood,
             city,
             reservation.Notes,
@@ -51,6 +64,26 @@ public sealed class GetReservationContractDataHandler
             DateOnly.FromDateTime(DateTime.Today),
             null,
             null);
+    }
+
+    private static string BuildAddressLine(
+        string? street,
+        string? number,
+        string? complement,
+        string fallbackAddressLine)
+    {
+        if (string.IsNullOrWhiteSpace(street) || string.IsNullOrWhiteSpace(number))
+        {
+            return fallbackAddressLine;
+        }
+
+        var addressLine = $"{street.Trim()}, {number.Trim()}";
+        if (!string.IsNullOrWhiteSpace(complement))
+        {
+            addressLine = $"{addressLine} - {complement.Trim()}";
+        }
+
+        return addressLine;
     }
 
     private static (string AddressLine, string? Neighborhood, string? City) SplitAddress(string address)
