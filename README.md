@@ -156,9 +156,18 @@ Eventos publicados:
 - `reservation.created`
 - `reservation.cancelled`
 
+## Endereço estruturado
+
+- Reservas aceitam endereço legado (`CustomerAddress`) e endereço estruturado:
+  - `CustomerZipCode`, `CustomerStreet`, `CustomerNumber`, `CustomerComplement`
+  - `CustomerNeighborhood`, `CustomerCity`, `CustomerState`, `CustomerReference`
+- Contratos usam fallback automático para manter compatibilidade com dados antigos.
+- Consulta de CEP disponível em `GET /api/address/lookup-cep/{cep}`.
+
 ## Endpoints
 
 - `POST /api/auth/token`
+- `GET /api/address/lookup-cep/{cep}`
 - `POST /api/kits`
 - `GET /api/kits?page=1&pageSize=20`
 - `GET /api/kits/{id}`

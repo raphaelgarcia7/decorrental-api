@@ -63,6 +63,54 @@ public sealed class ContractsApiTests : IClassFixture<DecorRentalApiFactory>
     }
 
     [Fact]
+    public async Task Get_contract_data_endpoint_should_prioritize_structured_address_fields_when_available()
+    {
+        await AuthenticateAsManagerAsync();
+
+        var categoryId = await CreateCategoryWithItemAsync("Completa", "Arco", 2, 1);
+        var kitId = await CreateKitAsync("Patrulha Canina");
+
+        var reserveResponse = await _httpClient.PostAsJsonAsync(
+            $"/api/kits/{kitId}/reservations",
+            new ReserveKitRequest(
+                categoryId,
+                "2026-06-01",
+                "2026-06-02",
+                CustomerName: "Carla Souza",
+                CustomerDocumentNumber: "11122233344",
+                CustomerPhoneNumber: "11999990000",
+                CustomerAddress: "",
+                CustomerZipCode: "12243130",
+                CustomerStreet: "Rua dos Testes",
+                CustomerNumber: "25",
+                CustomerComplement: "Casa 2",
+                CustomerNeighborhood: "Centro",
+                CustomerCity: "Sao Jose dos Campos",
+                CustomerState: "SP",
+                CustomerReference: "Proximo ao mercado",
+                Notes: "Cliente prefere retirar pela manha.",
+                HasBalloonArch: true,
+                IsEntryPaid: true));
+
+        reserveResponse.EnsureSuccessStatusCode();
+        var reservePayload = await reserveResponse.Content.ReadFromJsonAsync<ReserveKitResponse>();
+        Assert.NotNull(reservePayload);
+
+        var contractDataResponse = await _httpClient.GetAsync(
+            $"/api/kits/{kitId}/reservations/{reservePayload.ReservationId}/contract-data");
+
+        Assert.Equal(HttpStatusCode.OK, contractDataResponse.StatusCode);
+
+        var contractData = await contractDataResponse.Content.ReadFromJsonAsync<ContractDataResponse>();
+        Assert.NotNull(contractData);
+        Assert.Equal("Rua dos Testes, 25 - Casa 2", contractData.CustomerAddress);
+        Assert.Equal("Centro", contractData.CustomerNeighborhood);
+        Assert.Equal("Sao Jose dos Campos", contractData.CustomerCity);
+        Assert.Equal("12243130", contractData.CustomerZipCode);
+        Assert.Equal("SP", contractData.CustomerState);
+    }
+
+    [Fact]
     public async Task Generate_contract_endpoint_should_return_docx_and_pdf_files()
     {
         await AuthenticateAsManagerAsync();
@@ -79,7 +127,15 @@ public sealed class ContractsApiTests : IClassFixture<DecorRentalApiFactory>
                 CustomerName: "Cliente Contrato",
                 CustomerDocumentNumber: "12345678900",
                 CustomerPhoneNumber: "11999998888",
-                CustomerAddress: "Rua Teste, 100",
+                CustomerAddress: "",
+                CustomerZipCode: "12243130",
+                CustomerStreet: "Rua Contrato Teste",
+                CustomerNumber: "100",
+                CustomerComplement: "Sala 1",
+                CustomerNeighborhood: "Vista Verde",
+                CustomerCity: "Sao Jose dos Campos",
+                CustomerState: "SP",
+                CustomerReference: "Casa azul",
                 Notes: "Contrato para validacao de arquivo.",
                 HasBalloonArch: false,
                 IsEntryPaid: false));
@@ -106,6 +162,12 @@ public sealed class ContractsApiTests : IClassFixture<DecorRentalApiFactory>
             CustomerDocumentNumber: contractData.CustomerDocumentNumber,
             CustomerPhoneNumber: contractData.CustomerPhoneNumber,
             CustomerAddress: contractData.CustomerAddress,
+            CustomerZipCode: contractData.CustomerZipCode,
+            CustomerStreet: contractData.CustomerStreet,
+            CustomerNumber: contractData.CustomerNumber,
+            CustomerComplement: contractData.CustomerComplement,
+            CustomerState: contractData.CustomerState,
+            CustomerReference: contractData.CustomerReference,
             CustomerNeighborhood: contractData.CustomerNeighborhood,
             CustomerCity: contractData.CustomerCity,
             Notes: contractData.Notes,
@@ -241,6 +303,14 @@ public sealed class ContractsApiTests : IClassFixture<DecorRentalApiFactory>
         string CustomerDocumentNumber = "12345678900",
         string CustomerPhoneNumber = "12999990000",
         string CustomerAddress = "Rua Teste, 100",
+        string? CustomerZipCode = null,
+        string? CustomerStreet = null,
+        string? CustomerNumber = null,
+        string? CustomerComplement = null,
+        string? CustomerNeighborhood = null,
+        string? CustomerCity = null,
+        string? CustomerState = null,
+        string? CustomerReference = null,
         string? Notes = "Reserva criada por teste automatizado.",
         bool HasBalloonArch = false,
         bool IsEntryPaid = false);
@@ -258,6 +328,12 @@ public sealed class ContractsApiTests : IClassFixture<DecorRentalApiFactory>
         string CustomerDocumentNumber,
         string CustomerPhoneNumber,
         string CustomerAddress,
+        string? CustomerZipCode = null,
+        string? CustomerStreet = null,
+        string? CustomerNumber = null,
+        string? CustomerComplement = null,
+        string? CustomerState = null,
+        string? CustomerReference = null,
         string? CustomerNeighborhood = null,
         string? CustomerCity = null,
         string? Notes = null,
@@ -278,6 +354,12 @@ public sealed class ContractsApiTests : IClassFixture<DecorRentalApiFactory>
         string CustomerDocumentNumber,
         string CustomerPhoneNumber,
         string CustomerAddress,
+        string? CustomerZipCode = null,
+        string? CustomerStreet = null,
+        string? CustomerNumber = null,
+        string? CustomerComplement = null,
+        string? CustomerState = null,
+        string? CustomerReference = null,
         string? CustomerNeighborhood = null,
         string? CustomerCity = null,
         string? Notes = null,
