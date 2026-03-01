@@ -228,10 +228,14 @@ public class KitsController : ControllerBase
             contractData.CustomerDocumentNumber,
             contractData.CustomerPhoneNumber,
             contractData.CustomerAddress,
+            contractData.CustomerNeighborhood,
+            contractData.CustomerCity,
             contractData.Notes,
             contractData.HasBalloonArch,
             contractData.IsEntryPaid,
-            contractData.ContractDate);
+            contractData.ContractDate,
+            contractData.TotalAmount,
+            contractData.EntryAmount);
 
         return Ok(response);
     }

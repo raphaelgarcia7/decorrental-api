@@ -35,9 +35,29 @@ public sealed class ContractDataRequestValidator : AbstractValidator<ContractDat
             .NotEmpty().WithMessage("CustomerAddress e obrigatorio.")
             .MaximumLength(250).WithMessage("CustomerAddress deve ter no maximo 250 caracteres.");
 
+        RuleFor(request => request.CustomerNeighborhood)
+            .MaximumLength(120)
+            .WithMessage("CustomerNeighborhood deve ter no maximo 120 caracteres.")
+            .When(request => !string.IsNullOrWhiteSpace(request.CustomerNeighborhood));
+
+        RuleFor(request => request.CustomerCity)
+            .MaximumLength(120)
+            .WithMessage("CustomerCity deve ter no maximo 120 caracteres.")
+            .When(request => !string.IsNullOrWhiteSpace(request.CustomerCity));
+
         RuleFor(request => request.Notes)
             .MaximumLength(500)
             .WithMessage("Notes deve ter no maximo 500 caracteres.")
             .When(request => !string.IsNullOrWhiteSpace(request.Notes));
+
+        RuleFor(request => request.TotalAmount)
+            .GreaterThanOrEqualTo(0)
+            .WithMessage("TotalAmount deve ser maior ou igual a zero.")
+            .When(request => request.TotalAmount.HasValue);
+
+        RuleFor(request => request.EntryAmount)
+            .GreaterThanOrEqualTo(0)
+            .WithMessage("EntryAmount deve ser maior ou igual a zero.")
+            .When(request => request.EntryAmount.HasValue);
     }
 }

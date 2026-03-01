@@ -50,10 +50,14 @@ public sealed class ContractsController : ControllerBase
             request.CustomerDocumentNumber,
             request.CustomerPhoneNumber,
             request.CustomerAddress,
+            request.CustomerNeighborhood,
+            request.CustomerCity,
             request.Notes,
             request.HasBalloonArch,
             request.IsEntryPaid,
-            request.ContractDate);
+            request.ContractDate,
+            request.TotalAmount,
+            request.EntryAmount);
 
         var command = new GenerateContractDocumentCommand(contractData, documentFormat);
         var file = await _generateContractDocumentHandler.HandleAsync(command, cancellationToken);

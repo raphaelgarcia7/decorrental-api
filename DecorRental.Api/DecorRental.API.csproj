@@ -28,4 +28,10 @@
     <ProjectReference Include="..\DecorRental.Infrastructure\DecorRental.Infrastructure.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="Templates\contrato_template.docx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

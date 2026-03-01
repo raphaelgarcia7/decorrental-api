@@ -30,6 +30,8 @@ public sealed class GetReservationContractDataHandler
         var category = await _kitCategoryRepository.GetByIdAsync(reservation.KitCategoryId, cancellationToken)
             ?? throw new NotFoundException("Categoria nao encontrada.");
 
+        var (addressLine, neighborhood, city) = SplitAddress(reservation.CustomerAddress);
+
         return new ContractData(
             kitTheme.Id,
             reservation.Id,
@@ -40,10 +42,32 @@ public sealed class GetReservationContractDataHandler
             reservation.CustomerName,
             reservation.CustomerDocumentNumber,
             reservation.CustomerPhoneNumber,
-            reservation.CustomerAddress,
+            addressLine,
+            neighborhood,
+            city,
             reservation.Notes,
             reservation.HasBalloonArch,
             reservation.IsEntryPaid,
-            DateOnly.FromDateTime(DateTime.Today));
+            DateOnly.FromDateTime(DateTime.Today),
+            null,
+            null);
+    }
+
+    private static (string AddressLine, string? Neighborhood, string? City) SplitAddress(string address)
+    {
+        if (string.IsNullOrWhiteSpace(address))
+        {
+            return (string.Empty, null, null);
+        }
+
+        var parts = address
+            .Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+
+        return parts.Length switch
+        {
+            >= 3 => (string.Join(", ", parts[..^2]), parts[^2], parts[^1]),
+            2 => (parts[0], parts[1], null),
+            _ => (parts[0], null, null)
+        };
     }
 }
