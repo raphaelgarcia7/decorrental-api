@@ -35,7 +35,32 @@ public sealed class AddressController : ControllerBase
                 "Informe um CEP com 8 digitos."));
         }
 
-        var result = await _addressLookupService.LookupByZipCodeAsync(normalizedZipCode, cancellationToken);
+        AddressLookupResult? result;
+        try
+        {
+            result = await _addressLookupService.LookupByZipCodeAsync(normalizedZipCode, cancellationToken);
+        }
+        catch (HttpRequestException)
+        {
+            return StatusCode(
+                StatusCodes.Status503ServiceUnavailable,
+                BuildProblemDetails(
+                    StatusCodes.Status503ServiceUnavailable,
+                    "https://httpstatuses.com/503",
+                    "Servico de CEP indisponivel.",
+                    "Nao foi possivel consultar o CEP no momento. Tente novamente em instantes."));
+        }
+        catch (TaskCanceledException)
+        {
+            return StatusCode(
+                StatusCodes.Status503ServiceUnavailable,
+                BuildProblemDetails(
+                    StatusCodes.Status503ServiceUnavailable,
+                    "https://httpstatuses.com/503",
+                    "Servico de CEP indisponivel.",
+                    "A consulta de CEP excedeu o tempo limite. Tente novamente em instantes."));
+        }
+
         if (result is null)
         {
             return NotFound(BuildProblemDetails(

@@ -30,7 +30,15 @@ public sealed class ViaCepAddressLookupService : IAddressLookupService
             return null;
         }
 
-        response.EnsureSuccessStatusCode();
+        if (!response.IsSuccessStatusCode)
+        {
+            _logger.LogWarning(
+                "Consulta ViaCEP para {ZipCode} retornou status {StatusCode}.",
+                normalizedZipCode,
+                (int)response.StatusCode);
+            return null;
+        }
+
         var payload = await response.Content.ReadFromJsonAsync<ViaCepResponse>(cancellationToken: cancellationToken);
         if (payload is null || payload.Erro)
         {
